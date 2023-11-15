@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @date 2023/8/6 19:15
  */
 @EnableAsync //异步调用，邮件转码使用
-@SpringBootApplication(scanBasePackages = {"com.wangpan"})
+@SpringBootApplication
 @MapperScan(basePackages = {"com.wangpan.mapper"})  //将项目中对应的mapper类的路径加进来就可以了
 @EnableTransactionManagement
 @EnableScheduling

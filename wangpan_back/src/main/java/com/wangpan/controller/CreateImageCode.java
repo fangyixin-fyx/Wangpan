@@ -1,4 +1,4 @@
-package com.wangpan.entity;
+package com.wangpan.controller;
 
 import java.awt.image.BufferedImage;
 import java.util.Random;
@@ -97,7 +97,8 @@ public class CreateImageCode {
 
     //得到随机字符
     private String randomStr(int n) {
-        String str1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789";
+        //String str1 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789";
+        String str1 = "abcdefghijklmnopqrstuvwxyz123456789";
         String str2 = "";
         int len = str1.length() - 1;
         double r;

@@ -1,7 +1,11 @@
 package com.wangpan.controller;
 
-import com.wangpan.entity.Constants;
-import com.wangpan.entity.CreateImageCode;
+import com.wangpan.constants.Constants;
+import com.wangpan.entity.vo.ResponseVO;
+import com.wangpan.exception.BusinessException;
+import com.wangpan.service.EmailCodeService;
+import com.wangpan.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,7 +18,12 @@ import java.io.IOException;
  * @date 2023/8/10 16:55
  */
 @RestController
-public class UserController {
+public class UserController extends ABaseController {
+
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private EmailCodeService emailCodeService;
 
     //登录验证码
     @RequestMapping("/checkCode")
@@ -33,4 +42,25 @@ public class UserController {
         }
         vCode.write(response.getOutputStream());
     }
+
+
+    @RequestMapping("/sendEmailCode")
+    public ResponseVO sendEmailCode(HttpSession session, String email, String checkCode, Integer type){
+        try{
+            if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY_EMAIL))){ //如果不匹配，抛异常
+                throw new BusinessException("图片验证码不正确");
+            }
+            emailCodeService.sendEmailCode(email,type);
+            return getSuccessResponseVO(null);
+        } finally {
+            //用完后重置验证码
+            session.removeAttribute(Constants.CHECK_CODE_KEY_EMAIL);
+        }
+    }
+
+
+
+
+
+
 }

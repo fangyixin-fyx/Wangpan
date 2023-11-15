@@ -59,6 +59,7 @@
       <artifactId>spring-boot-starter-mail</artifactId>
       <version>${springboot.version}</version>
     </dependency>
+
     <!--redis -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -125,6 +126,14 @@
       <artifactId>commons-io</artifactId>
       <version>${commons.io.version}</version>
     </dependency>
+
+    <!--Data注解-->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
   </dependencies>
 
   <build>
