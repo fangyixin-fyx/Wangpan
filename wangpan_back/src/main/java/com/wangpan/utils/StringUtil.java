@@ -17,4 +17,13 @@ public class StringUtil {
     public static final String getRandomNumber(Integer count){
         return RandomStringUtils.random(count,false,true);
     }
+
+    public static final Boolean isEmpty(String s){
+        if(s==null || s.equals("") || s.equals("null") || s.equals("\u0000")){
+            return true;
+        }else if(s.trim().equals("")){
+            return true;
+        }
+        return false;
+    }
 }

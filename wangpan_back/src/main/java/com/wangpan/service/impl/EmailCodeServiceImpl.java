@@ -158,8 +158,8 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 		try{
 			MimeMessage message=javaMailSender.createMimeMessage();
 			MimeMessageHelper helper=new MimeMessageHelper(message,true);
-			helper.setFrom(baseConfig.getMailUsername());
-			helper.setTo(email); //发给谁
+			helper.setFrom(baseConfig.getMailUsername()); //发件人
+			helper.setTo(email); //收件人
 
 			SysSettingsDto sysSettingsDto=redisConfig.getSysSettingDto();
 			//设置邮件标题
