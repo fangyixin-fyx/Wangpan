@@ -14,4 +14,7 @@ public class BaseConfig {
     @Value("${spring.mail.username}")
     private String mailUsername;
 
+    @Value("${admin.emails}")
+    private String adminEmails;
+
 }

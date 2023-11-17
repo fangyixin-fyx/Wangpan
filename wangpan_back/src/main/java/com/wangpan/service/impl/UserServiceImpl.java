@@ -1,8 +1,11 @@
 package com.wangpan.service.impl;
 
+import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
+import com.wangpan.dto.UserDto;
+import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.SimplePage;
 import com.wangpan.entity.query.UserQuery;
@@ -14,6 +17,7 @@ import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
 import com.wangpan.utils.StringUtil;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +35,8 @@ public class UserServiceImpl implements UserService {
 	private EmailCodeService emailCodeService;
 	@Autowired
 	private RedisConfig redisConfig;
+	@Autowired
+	private BaseConfig baseConfig;
 
 	/** 
 	 * 根据条件查询列表
@@ -207,4 +213,34 @@ public class UserServiceImpl implements UserService {
 		userMapper.insert(newUser);
 
 	}
+
+	public UserDto login(String email,String password){
+		User user=userMapper.selectByEmail(email);
+		if(!password.equals(user.getPassword())){
+			throw new BusinessException("账号或密码错误！");
+		}
+		if(UserStateEnum.DISABLE.getState().equals(user.getState())){
+			throw new BusinessException("用户已被禁用");
+		}
+		//更新最新登录时间
+		user.setLastLoginTime(new Date());
+		userMapper.updateByUid(user,user.getUid());
+
+		UserDto userDto=new UserDto();
+		userDto.setUid(user.getUid());
+		userDto.setUsername(user.getUsername());
+		if(ArrayUtils.contains(baseConfig.getAdminEmails().split(","),email)){
+			userDto.setIsAdmin(true);
+		}else{
+			userDto.setIsAdmin(false);
+		}
+		//用户空间
+		UserSpaceDto userSpaceDto=new UserSpaceDto();
+		userSpaceDto.setTotalSpace(userSpaceDto.getTotalSpace());
+		redisConfig.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
+
+		return userDto;
+	}
+
+
 }

@@ -30,6 +30,6 @@ public class StringUtil {
 
     //MD5加密
     public static String encodeByMD5(String str){
-        return isEmpty(str) ? null : DigestUtils.md2Hex(str);
+        return isEmpty(str) ? null : DigestUtils.md5Hex(str);
     }
 }

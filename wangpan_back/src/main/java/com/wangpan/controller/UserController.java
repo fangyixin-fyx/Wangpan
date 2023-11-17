@@ -3,6 +3,7 @@ package com.wangpan.controller;
 import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.annotations.VerifyParam;
 import com.wangpan.constants.Constants;
+import com.wangpan.dto.UserDto;
 import com.wangpan.entity.vo.ResponseVO;
 import com.wangpan.enums.VerifyRegexEnum;
 import com.wangpan.exception.BusinessException;
@@ -70,7 +71,7 @@ public class UserController extends ABaseController {
     @GlobalInterceptor(checkParam = true)
     public ResponseVO register(HttpSession session,
                                @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL) String email,
-                               @VerifyParam(required = true) String username,
+                               @VerifyParam(required = true) String nickName,
                                @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min=8, max=18) String password,
                                @VerifyParam(required = true) String checkCode,
                                @VerifyParam(required = true) String emailCode){
@@ -78,7 +79,7 @@ public class UserController extends ABaseController {
             if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY))){ //如果不匹配，抛异常
                 throw new BusinessException("验证码不正确");
             }
-            userService.register(username,password,email,emailCode);
+            userService.register(nickName,password,email,emailCode);  //username用不了因为前端定死
             return getSuccessResponseVO(null);
         } finally {
             //用完后重置验证码
@@ -86,9 +87,24 @@ public class UserController extends ABaseController {
         }
     }
 
+    @PostMapping("/login")
+    @GlobalInterceptor(checkParam = true)
+    public ResponseVO login(HttpSession session,
+                            @VerifyParam(required = true) String email,
+                            @VerifyParam(required = true) String password,
+                            @VerifyParam(required = true) String checkCode)
+    {
+        try {
+            if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY))){
+                throw new BusinessException("验证码错误");
+            }
+            UserDto userDto=userService.login(email,password);
+            session.setAttribute(Constants.SESSION_USER,userDto); //存入session
+            return getSuccessResponseVO(userDto);   //返给前端
+        }finally {
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
+        }
 
-
-
-
+    }
 
 }

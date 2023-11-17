@@ -2,6 +2,7 @@ package com.wangpan.config;
 
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
+import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -25,6 +26,11 @@ public class RedisConfig {
             redisUtils.set(Constants.REDIS_KEY_SYS_SETTINGS,sysSettingsDto);
         }
         return sysSettingsDto;
+    }
+
+    //将用户空间使用情况存入redis中
+    public void saveUserSpaceUsed(String uid, UserSpaceDto userSpaceDto){
+        redisUtils.setByTime(Constants.REDIS_KEY_USERSPACE_USED+uid,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
     }
 
 }
