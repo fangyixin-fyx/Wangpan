@@ -1,5 +1,6 @@
 package com.wangpan.utils;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.util.Random;
@@ -25,5 +26,10 @@ public class StringUtil {
             return true;
         }
         return false;
+    }
+
+    //MD5加密
+    public static String encodeByMD5(String str){
+        return isEmpty(str) ? null : DigestUtils.md2Hex(str);
     }
 }

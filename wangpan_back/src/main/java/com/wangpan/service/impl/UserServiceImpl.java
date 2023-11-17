@@ -1,21 +1,36 @@
 package com.wangpan.service.impl;
 
+import com.wangpan.config.RedisConfig;
+import com.wangpan.constants.Constants;
+import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.SimplePage;
 import com.wangpan.entity.query.UserQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.enums.PageSize;
+import com.wangpan.enums.UserStateEnum;
+import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.UserMapper;
+import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
+import com.wangpan.utils.StringUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 @Service("UserService")
 public class UserServiceImpl implements UserService {
-	@Resource
+	@Autowired
 	private UserMapper<User,UserQuery> userMapper;
+
+	@Autowired
+	private EmailCodeService emailCodeService;
+	@Autowired
+	private RedisConfig redisConfig;
 
 	/** 
 	 * 根据条件查询列表
@@ -162,5 +177,34 @@ public class UserServiceImpl implements UserService {
 		return userMapper.deleteByUsername(username);
 	}
 
+	/**
+	 * 注册
+	 * 事务处理：插入失败，但是验证码还能有效
+	 */
+	@Transactional(rollbackFor = Exception.class)
+	public void register(String username,String password,String email,String emailCode){
+		User userByEmail=userMapper.selectByEmail(email);
+		if(userByEmail!=null) throw new BusinessException("邮箱已被注册");
+		User userByName=userMapper.selectByUsername(username);
+		if(userByName!=null) throw new BusinessException("用户名已被使用");
+		//校验邮箱验证码
+		emailCodeService.checkCode(email,emailCode);
 
+		String userID= StringUtil.getRandomNumber(Constants.LENGTH_10);
+
+		//user信息
+		User newUser=new User();
+		newUser.setUid(userID);
+		newUser.setUsername(username);
+		newUser.setPassword(StringUtil.encodeByMD5(password)); //对密码加密
+		newUser.setEmail(email);
+		newUser.setRegistrationTime(new Date());
+		newUser.setState(UserStateEnum.ABLE.getState());
+		newUser.setUseSpace(0L);
+		//系统配置初始内存参数
+		SysSettingsDto sysSettingsDto=redisConfig.getSysSettingDto();
+		newUser.setTotalSpace(sysSettingsDto.getUserInitUseSpace()*Constants.MB);
+		userMapper.insert(newUser);
+
+	}
 }

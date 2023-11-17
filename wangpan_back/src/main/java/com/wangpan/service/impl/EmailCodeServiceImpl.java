@@ -177,5 +177,19 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 
 	}
 
+	/**
+	 * 检查验证码是否正确
+	 */
+	public void checkCode(String email,String code){
+		EmailCode emailCode=emailCodeMapper.selectByEmailAndCode(email,code);
+		if(emailCode==null) throw new BusinessException("验证码错误");
+		if(emailCode.getStatus()==1 ||
+			System.currentTimeMillis()-emailCode.getCreateTime().getTime()>Constants.LENGTH_15*1000*60){ //15min限制
+			throw new BusinessException("验证码已失效");
+		}
+		//验证码正确则将其标为失效，已使用
+		emailCodeMapper.disableEmailCode(email);
+	}
+
 
 }

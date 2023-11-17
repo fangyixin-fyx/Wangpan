@@ -4,6 +4,7 @@ import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.annotations.VerifyParam;
 import com.wangpan.constants.Constants;
 import com.wangpan.entity.vo.ResponseVO;
+import com.wangpan.enums.VerifyRegexEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
@@ -49,7 +50,8 @@ public class UserController extends ABaseController {
 
     @PostMapping("/sendEmailCode")
     @GlobalInterceptor(checkParam = true)
-    public ResponseVO sendEmailCode(HttpSession session, @VerifyParam(required = true) String email,
+    public ResponseVO sendEmailCode(HttpSession session,
+                                    @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL) String email,
                                     @VerifyParam(required = true) String checkCode,
                                     @VerifyParam(required = true) Integer type){
         try{
@@ -61,6 +63,26 @@ public class UserController extends ABaseController {
         } finally {
             //用完后重置验证码
             session.removeAttribute(Constants.CHECK_CODE_KEY_EMAIL);
+        }
+    }
+
+    @PostMapping("/register")
+    @GlobalInterceptor(checkParam = true)
+    public ResponseVO register(HttpSession session,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL) String email,
+                               @VerifyParam(required = true) String username,
+                               @VerifyParam(required = true, regex = VerifyRegexEnum.PASSWORD, min=8, max=18) String password,
+                               @VerifyParam(required = true) String checkCode,
+                               @VerifyParam(required = true) String emailCode){
+        try{
+            if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY))){ //如果不匹配，抛异常
+                throw new BusinessException("验证码不正确");
+            }
+            userService.register(username,password,email,emailCode);
+            return getSuccessResponseVO(null);
+        } finally {
+            //用完后重置验证码
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
     }
 

@@ -54,4 +54,9 @@ public interface EmailCodeService {
 	Integer deleteEmailCodeByEmailAndCode(String email, String code) ;
 
     void sendEmailCode(String email, Integer type);
+
+	/**
+	 * 校验邮箱验证码
+	 */
+	void checkCode(String email,String code);
 }

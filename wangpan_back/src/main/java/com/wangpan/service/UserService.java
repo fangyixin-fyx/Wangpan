@@ -98,4 +98,9 @@ public interface UserService {
 	 */
 	Integer deleteUserByUsername(String username) ;
 
+	/**
+	 * 注册
+	 */
+	void register(String username, String password,String email,String emailCode);
+
 }
