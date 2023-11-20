@@ -5,7 +5,11 @@ import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.RedisSerializer;
 
 /**
  * redis配置信息
@@ -13,36 +17,24 @@ import org.springframework.context.annotation.Configuration;
  * @date 2023/11/14 16:35
  */
 @Configuration
-public class RedisConfig {
-    @Autowired
-    private RedisUtils redisUtils;
+public class RedisConfig<V> {
 
-    //可改进
-    public SysSettingsDto getSysSettingDto(){
-        //根据key获取value
-        SysSettingsDto sysSettingsDto= (SysSettingsDto) redisUtils.get(Constants.REDIS_KEY_SYS_SETTINGS);
-        if(sysSettingsDto==null) {
-            sysSettingsDto=new SysSettingsDto(); //有初始值
-            //同时往redis里存入，把邮箱格式等默认数据存进redis里
-            redisUtils.set(Constants.REDIS_KEY_SYS_SETTINGS,sysSettingsDto);
-        }
-        return sysSettingsDto;
-    }
+    //序列化
+    @Bean
+    public RedisTemplate<String, V> redisTemplate(RedisConnectionFactory factory){
+        RedisTemplate<String, V> template=new RedisTemplate<String, V>();
+        template.setConnectionFactory(factory);
+        //设置key序列化方式
+        template.setKeySerializer(RedisSerializer.string());
+        //设置value序列化方式
+        template.setValueSerializer(RedisSerializer.json());
+        //设置hash的key序列化方式
+        template.setHashKeySerializer(RedisSerializer.string());
+        //设置hash的value序列化方式
+        template.setHashValueSerializer(RedisSerializer.json());
 
-    //将用户空间使用情况存入redis中
-    public void saveUserSpaceUsed(String uid, UserSpaceDto userSpaceDto){
-        redisUtils.setByTime(Constants.REDIS_KEY_USERSPACE_USED+uid,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
-    }
-
-    public UserSpaceDto getUsedSpaceDto(String uid){
-        UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(Constants.REDIS_KEY_USERSPACE_USED+uid);
-        if(userSpaceDto==null){
-            userSpaceDto=new UserSpaceDto();
-            userSpaceDto.setUsedSpace(0L);
-            userSpaceDto.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
-            saveUserSpaceUsed(uid,userSpaceDto);
-        }
-        return userSpaceDto;
+        template.afterPropertiesSet();
+        return template;
     }
 
 }

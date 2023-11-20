@@ -4,6 +4,7 @@ import com.sun.deploy.net.HttpResponse;
 import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.annotations.VerifyParam;
 import com.wangpan.config.BaseConfig;
+import com.wangpan.config.RedisComponent;
 import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserDto;
@@ -14,11 +15,13 @@ import com.wangpan.enums.VerifyRegexEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
+import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,7 +45,7 @@ public class UserController extends ABaseController {
     @Autowired
     private BaseConfig baseConfig;
     @Autowired
-    private RedisConfig redisConfig;
+    private RedisComponent redisComponent;
 
     //登录验证码
     @RequestMapping("/checkCode")
@@ -64,7 +67,7 @@ public class UserController extends ABaseController {
 
 
     @PostMapping("/sendEmailCode")
-    @GlobalInterceptor(checkParam = true)
+    @GlobalInterceptor(checkParam = true,checkLogin = false)
     public ResponseVO sendEmailCode(HttpSession session,
                                     @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL) String email,
                                     @VerifyParam(required = true) String checkCode,
@@ -82,7 +85,7 @@ public class UserController extends ABaseController {
     }
 
     @PostMapping("/register")
-    @GlobalInterceptor(checkParam = true)
+    @GlobalInterceptor(checkParam = true,checkLogin = false)
     public ResponseVO register(HttpSession session,
                                @VerifyParam(required = true, regex = VerifyRegexEnum.EMAIL) String email,
                                @VerifyParam(required = true) String nickName,
@@ -102,7 +105,7 @@ public class UserController extends ABaseController {
     }
 
     @PostMapping("/login")
-    @GlobalInterceptor(checkParam = true)
+    @GlobalInterceptor(checkParam = true,checkLogin = false)
     public ResponseVO login(HttpSession session,
                             @VerifyParam(required = true) String email,
                             @VerifyParam(required = true) String password,
@@ -122,7 +125,7 @@ public class UserController extends ABaseController {
 
     //登陆界面忘记密码
     @PostMapping("/resetPwd")
-    @GlobalInterceptor(checkParam = true)
+    @GlobalInterceptor(checkParam = true,checkLogin = false)
     public ResponseVO resetPwd(HttpSession session,
                             @VerifyParam(required = true) String email,
                             @VerifyParam(required = true) String password,
@@ -182,15 +185,16 @@ public class UserController extends ABaseController {
     }
 
     //获取用户空间
-    @GetMapping("/getUseSpace")
+    //@PostMapping(value = "/getUseSpace",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping("/getUseSpace")
     public ResponseVO getUseSpace(HttpSession session){
         UserDto userDto=getUserInfoFromSession(session);
-        UserSpaceDto userSpaceDto=redisConfig.getUsedSpaceDto(userDto.getUid());
+        UserSpaceDto userSpaceDto= redisComponent.getUsedSpaceDto(userDto.getUid());
         return getSuccessResponseVO(userSpaceDto);
     }
 
     //退出登录
-    @GetMapping("/logout")
+    @RequestMapping("/logout")  //Post法
     public ResponseVO logout(HttpSession session){
         session.invalidate();
         return getSuccessResponseVO(null);

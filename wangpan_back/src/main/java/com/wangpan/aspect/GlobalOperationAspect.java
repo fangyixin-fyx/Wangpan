@@ -2,6 +2,8 @@ package com.wangpan.aspect;
 
 import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.annotations.VerifyParam;
+import com.wangpan.constants.Constants;
+import com.wangpan.dto.UserDto;
 import com.wangpan.enums.ResponseCodeEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.utils.StringUtil;
@@ -15,7 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -55,11 +61,9 @@ public class GlobalOperationAspect {
                 return;
             }
             // 校验登录
-            /*
             if(interceptor.checkLogin()||interceptor.checkAdmin()){
                 checkLogin(interceptor.checkAdmin());
             }
-             */
             //校验参数
             if(interceptor.checkParam()){
                 validateParams(method,arguments);
@@ -149,5 +153,13 @@ public class GlobalOperationAspect {
             logger.error("校验对象参数失败",e);
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
+    }
+
+    private void checkLogin(Boolean checkAdmin){
+        HttpServletRequest request=((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        HttpSession session= request.getSession();
+        UserDto userDto=(UserDto) session.getAttribute(Constants.SESSION_USER);
+        if(userDto==null) throw new BusinessException(ResponseCodeEnum.CODE_901);
+        if(checkAdmin && !userDto.getIsAdmin()) throw new BusinessException(ResponseCodeEnum.CODE_404);
     }
 }

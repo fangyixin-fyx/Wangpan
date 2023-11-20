@@ -1,6 +1,7 @@
 package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
+import com.wangpan.config.RedisComponent;
 import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
@@ -15,6 +16,7 @@ import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.EmailCodeMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
+import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	@Autowired
 	private BaseConfig baseConfig;
 	@Autowired
-	private RedisConfig redisConfig;
+	private RedisComponent redisComponent;
 
 	/** 
 	 * 根据条件查询列表
@@ -161,7 +163,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 			helper.setFrom(baseConfig.getMailUsername()); //发件人
 			helper.setTo(email); //收件人
 
-			SysSettingsDto sysSettingsDto=redisConfig.getSysSettingDto();
+			SysSettingsDto sysSettingsDto=redisComponent.getSysSettingDto();
 			//设置邮件标题
 			helper.setSubject(sysSettingsDto.getRegisterEmailTitle());
 			//设置邮件内容

@@ -18,4 +18,11 @@ public @interface GlobalInterceptor {
      * 是否校验参数
      */
     boolean checkParam() default false;
+
+    /**
+     * 校验登录
+     */
+    boolean checkLogin() default true;
+
+    boolean checkAdmin() default false;
 }

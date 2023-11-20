@@ -1,6 +1,7 @@
 package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
+import com.wangpan.config.RedisComponent;
 import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
@@ -16,6 +17,7 @@ import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
+import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringUtil;
 import org.apache.catalina.startup.SetContextPropertiesRule;
 import org.apache.commons.lang3.ArrayUtils;
@@ -35,7 +37,7 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private EmailCodeService emailCodeService;
 	@Autowired
-	private RedisConfig redisConfig;
+	private RedisComponent redisComponet;
 	@Autowired
 	private BaseConfig baseConfig;
 
@@ -210,7 +212,7 @@ public class UserServiceImpl implements UserService {
 		newUser.setUseSpace(0L);
 		//系统配置初始内存参数
 		//可改进，初始化参数不必放在redis中，可以放在Constant类
-		SysSettingsDto sysSettingsDto=redisConfig.getSysSettingDto();
+		SysSettingsDto sysSettingsDto=redisComponet.getSysSettingDto();
 		newUser.setTotalSpace(sysSettingsDto.getUserInitUseSpace()*Constants.MB);
 		userMapper.insert(newUser);
 
@@ -239,8 +241,8 @@ public class UserServiceImpl implements UserService {
 		//用户空间
 		//UserSpaceDto是否可改进？应该不需要额外定义
 		UserSpaceDto userSpaceDto=new UserSpaceDto();
-		userSpaceDto.setTotalSpace(userSpaceDto.getTotalSpace());
-		redisConfig.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
+		userSpaceDto.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
+		redisComponet.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
 
 		return userDto;
 	}
