@@ -117,7 +117,7 @@ public class GlobalOperationAspect {
         }
         //校验正则
         if(!isEmpty && !StringUtil.isEmpty(verifyParam.regex().getRegex())
-                && !VerifyUtils.verify(verifyParam.regex(), String.valueOf(value))){
+                && !VerifyUtils.verify(verifyParam.regex().getRegex(), String.valueOf(value))){
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
     }
@@ -130,13 +130,15 @@ public class GlobalOperationAspect {
     private void checkObjectValue(Parameter parameter, Object value){
         try{
             String typeName=parameter.getParameterizedType().getTypeName();
+            //根据反射获取class类对象
             Class clazz=Class.forName(typeName);
+            //获取标准属性信息
             Field[] fields=clazz.getDeclaredFields();
             for(Field field:fields){
                 VerifyParam fieldVerify=field.getAnnotation(VerifyParam.class);
                 if(fieldVerify==null) continue;
                 field.setAccessible(true);
-                //返回指定对象value上此 Field 表示的字段的值
+                //返回待检验对象value上此属性字段的值
                 Object resultVaule=field.get(value);
                 checkValue(resultVaule,fieldVerify);
             }

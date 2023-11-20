@@ -1,5 +1,6 @@
 package com.wangpan.service;
 
+import com.wangpan.annotations.VerifyParam;
 import com.wangpan.dto.UserDto;
 import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.UserQuery;
@@ -105,5 +106,12 @@ public interface UserService {
 	void register(String username, String password,String email,String emailCode);
 
 	UserDto login(String email,String password);
+
+	/**
+	 * 重置密码
+	 * @param password：新密码
+	 * @param emailCode：邮箱验证码
+	 */
+	void resetPwd(String email,String password,String emailCode);
 
 }

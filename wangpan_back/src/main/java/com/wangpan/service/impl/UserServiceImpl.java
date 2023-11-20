@@ -17,6 +17,7 @@ import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
 import com.wangpan.utils.StringUtil;
+import org.apache.catalina.startup.SetContextPropertiesRule;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -195,7 +196,7 @@ public class UserServiceImpl implements UserService {
 		if(userByName!=null) throw new BusinessException("用户名已被使用");
 		//校验邮箱验证码
 		emailCodeService.checkCode(email,emailCode);
-
+		//有可能会重复，需要改进
 		String userID= StringUtil.getRandomNumber(Constants.LENGTH_10);
 
 		//user信息
@@ -208,6 +209,7 @@ public class UserServiceImpl implements UserService {
 		newUser.setState(UserStateEnum.ABLE.getState());
 		newUser.setUseSpace(0L);
 		//系统配置初始内存参数
+		//可改进，初始化参数不必放在redis中，可以放在Constant类
 		SysSettingsDto sysSettingsDto=redisConfig.getSysSettingDto();
 		newUser.setTotalSpace(sysSettingsDto.getUserInitUseSpace()*Constants.MB);
 		userMapper.insert(newUser);
@@ -235,6 +237,7 @@ public class UserServiceImpl implements UserService {
 			userDto.setIsAdmin(false);
 		}
 		//用户空间
+		//UserSpaceDto是否可改进？应该不需要额外定义
 		UserSpaceDto userSpaceDto=new UserSpaceDto();
 		userSpaceDto.setTotalSpace(userSpaceDto.getTotalSpace());
 		redisConfig.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
@@ -242,5 +245,13 @@ public class UserServiceImpl implements UserService {
 		return userDto;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
+	public void resetPwd(String email,String password,String emailCode){
+		User user=userMapper.selectByEmail(email);
+		if(user==null) throw new BusinessException("用户不存在！");
+		emailCodeService.checkCode(email,emailCode);
+		user.setPassword(StringUtil.encodeByMD5(password));
+		userMapper.updateByEmail(user,email);
+	}
 
 }

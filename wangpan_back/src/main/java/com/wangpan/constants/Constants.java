@@ -24,10 +24,17 @@ public class Constants {
 
     //空间单位：兆
     public static final Long MB=1024 *1024L;
+    //默认使用空间
+    public static final Integer userInitUseSpace=5;
 
     //登录
     public static final String SESSION_USER="session_user";
 
+    public static final String FILE_PATH="/file/";
+    //头像路径
+    public static final String AVATAR_PATH=FILE_PATH+"avatar/";
+    //默认头像
+    public static final String AVATAR_DEFAULT="defaultAvatar.jpg";
 
 
 }

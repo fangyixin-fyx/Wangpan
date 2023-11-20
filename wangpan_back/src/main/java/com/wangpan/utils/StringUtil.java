@@ -32,4 +32,13 @@ public class StringUtil {
     public static String encodeByMD5(String str){
         return isEmpty(str) ? null : DigestUtils.md5Hex(str);
     }
+
+    //检验路径是否正确
+    public static boolean pathIsOk(String path){
+        if(StringUtil.isEmpty(path)) return true;
+        if(path.contains("../") || path.contains("..\\")){
+            return false;
+        }
+        return true;
+    }
 }

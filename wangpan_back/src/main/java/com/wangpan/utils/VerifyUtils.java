@@ -1,6 +1,5 @@
 package com.wangpan.utils;
 
-import com.wangpan.enums.VerifyRegexEnum;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,8 +18,11 @@ public class VerifyUtils {
         return matcher.matches();
     }
 
+    /*
     public static boolean verify(VerifyRegexEnum regex, String value){
         return verify(regex.getRegex(),value);
     }
+
+     */
 
 }

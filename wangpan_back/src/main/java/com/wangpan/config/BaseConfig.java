@@ -17,4 +17,7 @@ public class BaseConfig {
     @Value("${admin.emails}")
     private String adminEmails;
 
+    @Value("${project.folder}")
+    private String projectFolder;
+
 }

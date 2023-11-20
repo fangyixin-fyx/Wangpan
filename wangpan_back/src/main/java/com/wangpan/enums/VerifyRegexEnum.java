@@ -12,7 +12,7 @@ public enum VerifyRegexEnum {
     PASSWORD("^(?=.*\\d)(?=.*[a-zA-Z])[\\da-zA-Z~!@#$%^&*_]{8,}$","只能是数字，字母，特殊字符，8-18位");
 
     private String regex;
-    private String desc;
+    private String desc; //描述信息
 
     VerifyRegexEnum(String regex,String desc){
         this.regex=regex;

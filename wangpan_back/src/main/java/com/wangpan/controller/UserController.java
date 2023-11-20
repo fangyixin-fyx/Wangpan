@@ -1,22 +1,32 @@
 package com.wangpan.controller;
 
+import com.sun.deploy.net.HttpResponse;
 import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.annotations.VerifyParam;
+import com.wangpan.config.BaseConfig;
+import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserDto;
+import com.wangpan.dto.UserSpaceDto;
+import com.wangpan.entity.po.User;
 import com.wangpan.entity.vo.ResponseVO;
 import com.wangpan.enums.VerifyRegexEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
+import com.wangpan.utils.StringUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * @author fangyixin
@@ -24,11 +34,15 @@ import java.io.IOException;
  */
 @RestController
 public class UserController extends ABaseController {
-
+    private static final Logger logger= LoggerFactory.getLogger(UserController.class);
     @Autowired
     private UserService userService;
     @Autowired
     private EmailCodeService emailCodeService;
+    @Autowired
+    private BaseConfig baseConfig;
+    @Autowired
+    private RedisConfig redisConfig;
 
     //登录验证码
     @RequestMapping("/checkCode")
@@ -104,7 +118,116 @@ public class UserController extends ABaseController {
         }finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
-
     }
 
+    //登陆界面忘记密码
+    @PostMapping("/resetPwd")
+    @GlobalInterceptor(checkParam = true)
+    public ResponseVO resetPwd(HttpSession session,
+                            @VerifyParam(required = true) String email,
+                            @VerifyParam(required = true) String password,
+                            @VerifyParam(required = true) String checkCode,
+                            @VerifyParam(required = true) String emailCode   )
+    {
+        try {
+            if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY))){
+                throw new BusinessException("验证码错误");
+            }
+            userService.resetPwd(email,password,emailCode);
+            return getSuccessResponseVO(null);   //返给前端
+        }finally {
+            session.removeAttribute(Constants.CHECK_CODE_KEY);
+        }
+    }
+
+    @GetMapping("/getAvatar/{userId}")
+    public void getAvatar(HttpServletResponse response, @PathVariable("userId") String userId){
+        String path=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
+        File pathFile=new File(path);
+        //判断路径是否存在
+        if(!pathFile.exists()) pathFile.mkdirs();
+        String avatarFilePath=path+userId+".jpg"; //绝对路径
+        File avatarFile=new File(avatarFilePath);
+        //如果头像不存在，赋予默认头像
+        if(!avatarFile.exists()){
+            String defaultAvatarFilePath=path+Constants.AVATAR_DEFAULT;
+            //如果默认头像不存在
+            if(!new File(defaultAvatarFilePath).exists()) noDefaultAvatar(response);  //这里可改进
+            avatarFilePath=defaultAvatarFilePath;
+        }
+        response.setContentType("image/jpg");
+        readFile(response,avatarFilePath);
+    }
+
+    private void noDefaultAvatar(HttpServletResponse response){
+        response.setHeader("Content-Type","application/json:charset=UTF-8");
+        response.setStatus(HttpStatus.OK.value());
+        PrintWriter writer=null;
+        try{
+            writer=response.getWriter();
+            writer.println("默认头像文件不存在，请设置！");
+            writer.close();
+        }catch (Exception e){
+            logger.error("输出无默认头像异常",e);
+        }finally {
+            writer.close();
+        }
+    }
+
+    //获取用户信息
+    @GetMapping("/getUserInfo")
+    public ResponseVO getUserInfo(HttpSession session){
+        UserDto userDto=getUserInfoFromSession(session);
+        return getSuccessResponseVO(userDto);
+    }
+
+    //获取用户空间
+    @GetMapping("/getUseSpace")
+    public ResponseVO getUseSpace(HttpSession session){
+        UserDto userDto=getUserInfoFromSession(session);
+        UserSpaceDto userSpaceDto=redisConfig.getUsedSpaceDto(userDto.getUid());
+        return getSuccessResponseVO(userSpaceDto);
+    }
+
+    //退出登录
+    @GetMapping("/logout")
+    public ResponseVO logout(HttpSession session){
+        session.invalidate();
+        return getSuccessResponseVO(null);
+    }
+
+    //更新头像
+    @PostMapping("/updateUserAvatar")
+    public ResponseVO updateUserAvatar(HttpSession session, MultipartFile avatar){
+        UserDto userDto=getUserInfoFromSession(session);
+        String baseFilePath=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
+        File targetFileFolder=new File(baseFilePath);
+        if(!targetFileFolder.exists()) targetFileFolder.mkdirs();
+        File avatarFile=new File(baseFilePath+"/"+userDto.getUid()+".jpg");
+        try{
+            avatar.transferTo(avatarFile);
+        }catch (Exception e){
+            logger.error("头像上传失败！请重新尝试。",e);
+        }
+
+        User user=new User();
+        //如果是qq登录则有默认qq头像，当更新头像后使用uid标记的上传头像，因此qq头像置空，没有自己上传的头像才使用qq头像
+        //即优先级 自己上传的头像>qq头像
+        //但是getAvatar那里没有判断是否qq登录是否上传了本地头像，有改进之处
+        user.setQqIcon("");
+        userService.updateUserByUid(user,userDto.getUid());
+        userDto.setAvatar(null);
+        session.setAttribute(Constants.SESSION_USER,userDto);
+        return getSuccessResponseVO(null);
+    }
+
+    //登陆后更新密码
+    @PostMapping("/updatePassword")
+    public ResponseVO updatePassword(HttpSession session,String password){
+        UserDto userDto=getUserInfoFromSession(session);
+        User user=new User();
+        user.setPassword(StringUtil.encodeByMD5(password));
+        userService.updateUserByUid(user,userDto.getUid());
+        return getSuccessResponseVO(null);
+    }
 }

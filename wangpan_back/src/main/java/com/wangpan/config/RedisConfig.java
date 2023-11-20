@@ -17,6 +17,7 @@ public class RedisConfig {
     @Autowired
     private RedisUtils redisUtils;
 
+    //可改进
     public SysSettingsDto getSysSettingDto(){
         //根据key获取value
         SysSettingsDto sysSettingsDto= (SysSettingsDto) redisUtils.get(Constants.REDIS_KEY_SYS_SETTINGS);
@@ -31,6 +32,17 @@ public class RedisConfig {
     //将用户空间使用情况存入redis中
     public void saveUserSpaceUsed(String uid, UserSpaceDto userSpaceDto){
         redisUtils.setByTime(Constants.REDIS_KEY_USERSPACE_USED+uid,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
+    }
+
+    public UserSpaceDto getUsedSpaceDto(String uid){
+        UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(Constants.REDIS_KEY_USERSPACE_USED+uid);
+        if(userSpaceDto==null){
+            userSpaceDto=new UserSpaceDto();
+            userSpaceDto.setUsedSpace(0L);
+            userSpaceDto.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
+            saveUserSpaceUsed(uid,userSpaceDto);
+        }
+        return userSpaceDto;
     }
 
 }
