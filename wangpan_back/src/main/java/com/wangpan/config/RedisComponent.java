@@ -7,13 +7,15 @@ import com.wangpan.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
+
 /**
  * @author fangyixin
  * @date 2023/11/20 22:01
  */
-@Component
+@Component("redisComponent")
 public class RedisComponent {
-    @Autowired
+    @Resource
     private RedisUtils redisUtils;
 
     //可改进
