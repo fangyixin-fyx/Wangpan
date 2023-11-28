@@ -2,7 +2,6 @@ package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisComponent;
-import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.entity.po.EmailCode;
@@ -16,8 +15,7 @@ import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.EmailCodeMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
-import com.wangpan.utils.RedisUtils;
-import com.wangpan.utils.StringUtil;
+import com.wangpan.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +28,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.Date;
 import java.util.List;
 
-@Service("emailCodeService")
+@Service("EmailCodeService")
 public class EmailCodeServiceImpl implements EmailCodeService {
 	private static final Logger logger = LoggerFactory.getLogger(EmailCodeServiceImpl.class);
 	@Autowired
@@ -140,7 +138,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 			if(user!=null) throw new BusinessException("邮箱已存在！");
 		}
 		//获得随机数
-		String code = StringUtil.getRandomNumber(Constants.LENGTH_5);
+		String code = StringUtils.getRandomNumber(Constants.LENGTH_5);
 		//重置已有验证码，置为无效
 		emailCodeMapper.disableEmailCode(email);
 		// 发送验证码

@@ -528,5 +528,25 @@
         delete from user where username=#{username}
     </delete>
 
+    <!--更新用户空间-->
+    <update id="updateUserSpace">
+        update user
+        <set>
+            <if test="useSpace!=null">
+                useSpace=useSpace+#{useSpace},
+            </if>
+            <if test="totalSpace!=null">
+                totalSpace=totalSpace+#{totalSpace},
+            </if>
+        </set>
+        where uid=#{uid}
+        <if test="useSpace!=null">
+            and <![CDATA[ (useSpace+#{useSpace}) <= totalSpace]]>
+        </if>
+        <if test="totalSpace!=null">
+            and <![CDATA[ (totalSpace+#{totalSpace}) > useSpace]]>
+        </if>
+    </update>
+
 
 </mapper>

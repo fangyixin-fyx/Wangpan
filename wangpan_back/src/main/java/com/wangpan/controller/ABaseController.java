@@ -2,14 +2,14 @@ package com.wangpan.controller;
 
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserDto;
-import com.wangpan.dto.UserSpaceDto;
+import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.entity.vo.ResponseVO;
 import com.wangpan.enums.ResponseCodeEnum;
-import com.wangpan.utils.StringUtil;
+import com.wangpan.utils.CopyUtil;
+import com.wangpan.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.IIOException;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -29,13 +29,13 @@ public class ABaseController {
         responseVO.setStatus(STATUE_SUCCESS);
         responseVO.setCode(ResponseCodeEnum.CODE_200.getCode());
         responseVO.setInfo(ResponseCodeEnum.CODE_200.getMsg());
-        responseVO.setDate(t);
+        responseVO.setData(t);
         return responseVO;
     }
 
     //读文件流
     protected void readFile(HttpServletResponse response,String filePath){
-        if(!StringUtil.pathIsOk(filePath))  return;
+        if(!StringUtils.pathIsOk(filePath))  return;
         OutputStream out=null;
         FileInputStream in=null;
         try{
@@ -72,8 +72,24 @@ public class ABaseController {
 
     //从session获取登陆对象信息
     protected UserDto getUserInfoFromSession(HttpSession session){
-        UserDto userDto=(UserDto) session.getAttribute(Constants.SESSION_USER);
+        UserDto userDto =(UserDto) session.getAttribute(Constants.SESSION_USER);
         return userDto;
+    }
+
+    /**
+     * 将PO转为VO
+     * @param result
+     * @param clazz
+     * @return
+     */
+    protected <S,T> PaginationResultVO<T> convert2PaginationVO(PaginationResultVO<S> result, Class<T> clazz){
+        PaginationResultVO<T> resultVO=new PaginationResultVO<>();
+        resultVO.setList(CopyUtil.copyList(result.getList(),clazz));
+        resultVO.setPageNo(result.getPageNo());
+        resultVO.setPageSize(result.getPageSize());
+        resultVO.setPageTotal(result.getPageTotal());
+        resultVO.setTotalCount(result.getTotalCount());
+        return resultVO;
     }
 
 }

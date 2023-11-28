@@ -1,11 +1,9 @@
 package com.wangpan.service;
 
-import com.wangpan.annotations.VerifyParam;
 import com.wangpan.dto.UserDto;
 import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.UserQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -105,7 +103,7 @@ public interface UserService {
 	 */
 	void register(String username, String password,String email,String emailCode);
 
-	UserDto login(String email,String password);
+	UserDto login(String email, String password);
 
 	/**
 	 * 重置密码

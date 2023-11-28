@@ -2,7 +2,6 @@ package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisComponent;
-import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserDto;
@@ -14,18 +13,16 @@ import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.enums.PageSize;
 import com.wangpan.enums.UserStateEnum;
 import com.wangpan.exception.BusinessException;
+import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
-import com.wangpan.utils.RedisUtils;
-import com.wangpan.utils.StringUtil;
-import org.apache.catalina.startup.SetContextPropertiesRule;
+import com.wangpan.utils.StringUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
@@ -40,6 +37,8 @@ public class UserServiceImpl implements UserService {
 	private RedisComponent redisComponet;
 	@Autowired
 	private BaseConfig baseConfig;
+	@Autowired
+	private FileMapper fileMapper;
 
 	/** 
 	 * 根据条件查询列表
@@ -199,13 +198,13 @@ public class UserServiceImpl implements UserService {
 		//校验邮箱验证码
 		emailCodeService.checkCode(email,emailCode);
 		//有可能会重复，需要改进
-		String userID= StringUtil.getRandomNumber(Constants.LENGTH_10);
+		String userID= StringUtils.getRandomNumber(Constants.LENGTH_10);
 
 		//user信息
 		User newUser=new User();
 		newUser.setUid(userID);
 		newUser.setUsername(username);
-		newUser.setPassword(StringUtil.encodeByMD5(password)); //对密码加密
+		newUser.setPassword(StringUtils.encodeByMD5(password)); //对密码加密
 		newUser.setEmail(email);
 		newUser.setRegistrationTime(new Date());
 		newUser.setState(UserStateEnum.ABLE.getState());
@@ -218,7 +217,7 @@ public class UserServiceImpl implements UserService {
 
 	}
 
-	public UserDto login(String email,String password){
+	public UserDto login(String email, String password){
 		User user=userMapper.selectByEmail(email);
 		if(!password.equals(user.getPassword())){
 			throw new BusinessException("账号或密码错误！");
@@ -230,7 +229,7 @@ public class UserServiceImpl implements UserService {
 		user.setLastLoginTime(new Date());
 		userMapper.updateByUid(user,user.getUid());
 
-		UserDto userDto=new UserDto();
+		UserDto userDto =new UserDto();
 		userDto.setUid(user.getUid());
 		userDto.setUsername(user.getUsername());
 		if(ArrayUtils.contains(baseConfig.getAdminEmails().split(","),email)){
@@ -241,9 +240,10 @@ public class UserServiceImpl implements UserService {
 		//用户空间
 		//UserSpaceDto是否可改进？应该不需要额外定义
 		UserSpaceDto userSpaceDto=new UserSpaceDto();
-		userSpaceDto.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
+		userSpaceDto.setTotalSpace(user.getTotalSpace());
+		userSpaceDto.setUseSpace(fileMapper.getUsedSpaceByUid(user.getUid()));
 		redisComponet.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
-
+		System.out.println("---userService--"+redisComponet.getUsedSpaceDto(user.getUid()));
 		return userDto;
 	}
 
@@ -252,7 +252,7 @@ public class UserServiceImpl implements UserService {
 		User user=userMapper.selectByEmail(email);
 		if(user==null) throw new BusinessException("用户不存在！");
 		emailCodeService.checkCode(email,emailCode);
-		user.setPassword(StringUtil.encodeByMD5(password));
+		user.setPassword(StringUtils.encodeByMD5(password));
 		userMapper.updateByEmail(user,email);
 	}
 

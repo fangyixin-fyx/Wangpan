@@ -1,11 +1,9 @@
 package com.wangpan.controller;
 
-import com.sun.deploy.net.HttpResponse;
 import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.annotations.VerifyParam;
 import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisComponent;
-import com.wangpan.config.RedisConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserSpaceDto;
@@ -15,13 +13,11 @@ import com.wangpan.enums.VerifyRegexEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
-import com.wangpan.utils.RedisUtils;
-import com.wangpan.utils.StringUtil;
+import com.wangpan.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -115,9 +111,9 @@ public class UserController extends ABaseController {
             if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY))){
                 throw new BusinessException("验证码错误");
             }
-            UserDto userDto=userService.login(email,password);
-            session.setAttribute(Constants.SESSION_USER,userDto); //存入session
-            return getSuccessResponseVO(userDto);   //返给前端
+            UserDto sessionWebUserDto =userService.login(email,password);
+            session.setAttribute(Constants.SESSION_USER, sessionWebUserDto); //存入session
+            return getSuccessResponseVO(sessionWebUserDto);   //返给前端
         }finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
@@ -177,20 +173,20 @@ public class UserController extends ABaseController {
         }
     }
 
-    //获取用户信息
+    //获取用户信息---未用到
     @GetMapping("/getUserInfo")
     public ResponseVO getUserInfo(HttpSession session){
-        UserDto userDto=getUserInfoFromSession(session);
-        return getSuccessResponseVO(userDto);
+        UserDto sessionWebUserDto =getUserInfoFromSession(session);
+        return getSuccessResponseVO(sessionWebUserDto);
     }
 
     //获取用户空间
     //@PostMapping(value = "/getUseSpace",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @RequestMapping("/getUseSpace")
     public ResponseVO getUseSpace(HttpSession session){
-        UserDto userDto=getUserInfoFromSession(session);
-        UserSpaceDto userSpaceDto= redisComponent.getUsedSpaceDto(userDto.getUid());
-        return getSuccessResponseVO(userSpaceDto);
+        UserDto userDto =getUserInfoFromSession(session);
+        UserSpaceDto spaceDto= redisComponent.getUsedSpaceDto(userDto.getUid());
+        return getSuccessResponseVO(spaceDto);
     }
 
     //退出登录
@@ -203,11 +199,11 @@ public class UserController extends ABaseController {
     //更新头像
     @PostMapping("/updateUserAvatar")
     public ResponseVO updateUserAvatar(HttpSession session, MultipartFile avatar){
-        UserDto userDto=getUserInfoFromSession(session);
+        UserDto userDto =getUserInfoFromSession(session);
         String baseFilePath=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
         File targetFileFolder=new File(baseFilePath);
         if(!targetFileFolder.exists()) targetFileFolder.mkdirs();
-        File avatarFile=new File(baseFilePath+"/"+userDto.getUid()+".jpg");
+        File avatarFile=new File(baseFilePath+"/"+ userDto.getUid()+".jpg");
         try{
             avatar.transferTo(avatarFile);
         }catch (Exception e){
@@ -219,19 +215,21 @@ public class UserController extends ABaseController {
         //即优先级 自己上传的头像>qq头像
         //但是getAvatar那里没有判断是否qq登录是否上传了本地头像，有改进之处
         user.setQqIcon("");
-        userService.updateUserByUid(user,userDto.getUid());
+        userService.updateUserByUid(user, userDto.getUid());
         userDto.setAvatar(null);
-        session.setAttribute(Constants.SESSION_USER,userDto);
+        session.setAttribute(Constants.SESSION_USER, userDto);
+        System.out.println("---updateAvatar----"+session.getAttribute(Constants.SESSION_USER));
         return getSuccessResponseVO(null);
     }
 
     //登陆后更新密码
     @PostMapping("/updatePassword")
     public ResponseVO updatePassword(HttpSession session,String password){
-        UserDto userDto=getUserInfoFromSession(session);
+        UserDto userDto =getUserInfoFromSession(session);
         User user=new User();
-        user.setPassword(StringUtil.encodeByMD5(password));
-        userService.updateUserByUid(user,userDto.getUid());
+        user.setPassword(StringUtils.encodeByMD5(password));
+        userService.updateUserByUid(user, userDto.getUid());
         return getSuccessResponseVO(null);
     }
+
 }

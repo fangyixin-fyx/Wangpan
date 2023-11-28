@@ -4,7 +4,7 @@ public class ResponseVO<T> {
     private String status;
     private Integer code;
     private String info;
-    private T date;
+    private T data;
 
     public String getStatus() {
         return status;
@@ -30,11 +30,11 @@ public class ResponseVO<T> {
         this.info = info;
     }
 
-    public T getDate() {
-        return date;
+    public T getData() {
+        return data;
     }
 
-    public void setDate(T date) {
-        this.date = date;
+    public void setData(T data) {
+        this.data = data;
     }
 }

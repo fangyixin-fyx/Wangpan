@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 public class VerifyUtils {
 
     public static boolean verify(String regex, String value){
-        if(StringUtil.isEmpty(value)) return false;
+        if(StringUtils.isEmpty(value)) return false;
         Pattern pattern=Pattern.compile(regex);
         Matcher matcher=pattern.matcher(value);
         return matcher.matches();

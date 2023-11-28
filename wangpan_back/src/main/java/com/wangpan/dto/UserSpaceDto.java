@@ -10,6 +10,6 @@ import java.io.Serializable;
  */
 @Data
 public class UserSpaceDto implements Serializable {
-    private Long usedSpace;
+    private Long useSpace;
     private Long totalSpace;
 }

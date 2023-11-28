@@ -3,6 +3,7 @@ package com.wangpan.config;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserSpaceDto;
+import com.wangpan.mapper.FileMapper;
 import com.wangpan.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,8 @@ import javax.annotation.Resource;
 public class RedisComponent {
     @Resource
     private RedisUtils redisUtils;
+    @Autowired
+    private FileMapper fileMapper;
 
     //可改进
     public SysSettingsDto getSysSettingDto(){
@@ -39,10 +42,30 @@ public class RedisComponent {
         UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(Constants.REDIS_KEY_USERSPACE_USED+uid);
         if(userSpaceDto==null){
             userSpaceDto=new UserSpaceDto();
-            userSpaceDto.setUsedSpace(0L);
+            userSpaceDto.setUseSpace(fileMapper.getUsedSpaceByUid(uid));
             userSpaceDto.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
             saveUserSpaceUsed(uid,userSpaceDto);
         }
         return userSpaceDto;
+    }
+
+
+    /**
+     * 获取临时文件夹空间使用情况
+     */
+    public Long getFileSizeFromRedis(String key){
+        Object size=redisUtils.get(key);
+        if(size instanceof Integer){
+            return ((Integer)size).longValue();
+        }else if(size instanceof Long){
+            return (Long)size;
+        }
+        return 0L;
+    }
+
+    public void setFileTempSize(String uid,String fid,Long fileSize){
+        String key=Constants.REDIS_USER_FILE_TEMP_SIZE+uid+fid;
+        Long currentSize=getFileSizeFromRedis(key);
+        redisUtils.setByTime(key,currentSize+fileSize,Constants.REDIS_KEY_EXPIRES_DAY);
     }
 }
