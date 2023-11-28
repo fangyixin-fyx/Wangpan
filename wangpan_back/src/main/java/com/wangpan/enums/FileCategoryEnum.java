@@ -1,0 +1,40 @@
+package com.wangpan.enums;
+
+/**
+ * @author fangyixin
+ * @date 2023/11/27 14:00
+ */
+public enum FileCategoryEnum {
+    VIDEO(1,"video","视频"),
+    MUSIC(2,"music","音频"),
+    IMAGE(3,"image","图片"),
+    DOC(4,"doc","文档"),
+    OTHERS(5,"others","其他");
+
+    private Integer category;
+    private String code;  //用于路径参数展示，后面会转换
+    private String description;
+
+    FileCategoryEnum(Integer category,String code,String description){
+        this.category=category;
+        this.code=code;
+        this.description=description;
+    }
+
+    public static FileCategoryEnum getByCode(String code){
+        for(FileCategoryEnum item:FileCategoryEnum.values()){
+            if(item.getCode().equals(code)){
+                return item;
+            }
+        }
+        return null;
+    }
+
+    public Integer getCategory() {
+        return category;
+    }
+
+    public String getCode() {
+        return code;
+    }
+}
