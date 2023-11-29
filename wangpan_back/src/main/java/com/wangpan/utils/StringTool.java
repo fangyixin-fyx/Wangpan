@@ -7,7 +7,7 @@ import org.apache.commons.lang3.RandomStringUtils;
  * @author fangyixin
  * @date 2023/8/14 17:13
  */
-public class StringUtils {
+public class StringTool {
     /**
      * 生成随机数
      * @param count：随机数的个数
@@ -33,7 +33,7 @@ public class StringUtils {
 
     //检验路径是否正确
     public static boolean pathIsOk(String path){
-        if(StringUtils.isEmpty(path)) return true;
+        if(StringTool.isEmpty(path)) return true;
         if(path.contains("../") || path.contains("..\\")){
             return false;
         }

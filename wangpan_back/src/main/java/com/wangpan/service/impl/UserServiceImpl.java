@@ -17,7 +17,7 @@ import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
-import com.wangpan.utils.StringUtils;
+import com.wangpan.utils.StringTool;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -198,13 +198,13 @@ public class UserServiceImpl implements UserService {
 		//校验邮箱验证码
 		emailCodeService.checkCode(email,emailCode);
 		//有可能会重复，需要改进
-		String userID= StringUtils.getRandomNumber(Constants.LENGTH_10);
+		String userID= StringTool.getRandomNumber(Constants.LENGTH_10);
 
 		//user信息
 		User newUser=new User();
 		newUser.setUid(userID);
 		newUser.setUsername(username);
-		newUser.setPassword(StringUtils.encodeByMD5(password)); //对密码加密
+		newUser.setPassword(StringTool.encodeByMD5(password)); //对密码加密
 		newUser.setEmail(email);
 		newUser.setRegistrationTime(new Date());
 		newUser.setState(UserStateEnum.ABLE.getState());
@@ -241,7 +241,8 @@ public class UserServiceImpl implements UserService {
 		//UserSpaceDto是否可改进？应该不需要额外定义
 		UserSpaceDto userSpaceDto=new UserSpaceDto();
 		userSpaceDto.setTotalSpace(user.getTotalSpace());
-		userSpaceDto.setUseSpace(fileMapper.getUsedSpaceByUid(user.getUid()));
+		Long useSpace=fileMapper.getUsedSpaceByUid(user.getUid());
+		userSpaceDto.setUseSpace(useSpace);
 		redisComponet.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
 		System.out.println("---userService--"+redisComponet.getUsedSpaceDto(user.getUid()));
 		return userDto;
@@ -252,7 +253,7 @@ public class UserServiceImpl implements UserService {
 		User user=userMapper.selectByEmail(email);
 		if(user==null) throw new BusinessException("用户不存在！");
 		emailCodeService.checkCode(email,emailCode);
-		user.setPassword(StringUtils.encodeByMD5(password));
+		user.setPassword(StringTool.encodeByMD5(password));
 		userMapper.updateByEmail(user,email);
 	}
 

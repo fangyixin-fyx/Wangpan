@@ -52,6 +52,7 @@ public class RedisComponent {
 
     /**
      * 获取临时文件夹空间使用情况
+     * key: Constants.REDIS_USER_FILE_TEMP_SIZE + userId + fileId;
      */
     public Long getFileSizeFromRedis(String key){
         Object size=redisUtils.get(key);

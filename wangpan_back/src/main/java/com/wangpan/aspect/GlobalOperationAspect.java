@@ -6,7 +6,7 @@ import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserDto;
 import com.wangpan.enums.ResponseCodeEnum;
 import com.wangpan.exception.BusinessException;
-import com.wangpan.utils.StringUtils;
+import com.wangpan.utils.StringTool;
 import com.wangpan.utils.VerifyUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -110,7 +110,7 @@ public class GlobalOperationAspect {
      */
     private void checkValue(Object value, VerifyParam verifyParam){
         Integer length=(value==null ? 0 : value.toString().length() );
-        Boolean isEmpty=(value==null || StringUtils.isEmpty(value.toString()));
+        Boolean isEmpty=(value==null || StringTool.isEmpty(value.toString()));
         //校验空
         if(isEmpty && verifyParam.required()) throw new BusinessException(ResponseCodeEnum.CODE_600);
         //校验长度
@@ -120,7 +120,7 @@ public class GlobalOperationAspect {
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }
         //校验正则
-        if(!isEmpty && !StringUtils.isEmpty(verifyParam.regex().getRegex())
+        if(!isEmpty && !StringTool.isEmpty(verifyParam.regex().getRegex())
                 && !VerifyUtils.verify(verifyParam.regex().getRegex(), String.valueOf(value))){
             throw new BusinessException(ResponseCodeEnum.CODE_600);
         }

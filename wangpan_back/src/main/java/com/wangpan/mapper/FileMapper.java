@@ -24,4 +24,9 @@ public interface FileMapper<T, P> extends BaseMapper{
 	 * 查询已使用空间大小/已上传文件总大小
 	 */
 	Long getUsedSpaceByUid(@Param("userId") String userId);
+
+	/**
+	 * 更新状态，乐观锁
+	 */
+	void updateStatusWithOldStatus(@Param("fid") String fileId,@Param("uid") String userId,@Param("bean") T t,@Param("oldStatus") Integer oldStatus);
 }

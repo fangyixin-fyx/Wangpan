@@ -497,14 +497,69 @@
 		where fid=#{fid} and userId=#{userId}
 	</update>
 
-	<!--根据FidAndUserId删除-->
+    <!--根据FidAndUserId删除-->
 	<delete id="deleteByFidAndUserId">
 		delete from file where fid=#{fid} and userId=#{userId}
 	</delete>
 
 	<!--根据id查找已使用空间大小-->
 	<select id="getUsedSpaceByUid" resultType="Long">
-		select IFNULL(SUM(fileSize), 0) from file where userId=#{userId}
+		select IFNULL(SUM(fileSize),0) from file where userId=#{userId}
 	</select>
+
+	<update id="updateStatusWithOldStatus">
+		update file
+		<set>
+			<if test="bean.fid!=null">
+				fid=#{ bean.fid },
+			</if>
+			<if test="bean.userId!=null">
+				userId=#{ bean.userId },
+			</if>
+			<if test="bean.fileMd5!=null">
+				fileMd5=#{ bean.fileMd5 },
+			</if>
+			<if test="bean.filePid!=null">
+				filePid=#{ bean.filePid },
+			</if>
+			<if test="bean.fileSize!=null">
+				fileSize=#{ bean.fileSize },
+			</if>
+			<if test="bean.fileName!=null">
+				fileName=#{ bean.fileName },
+			</if>
+			<if test="bean.fileCover!=null">
+				fileCover=#{ bean.fileCover },
+			</if>
+			<if test="bean.filePath!=null">
+				filePath=#{ bean.filePath },
+			</if>
+			<if test="bean.createTime!=null">
+				createTime=#{ bean.createTime },
+			</if>
+			<if test="bean.lastUpdateTime!=null">
+				lastUpdateTime=#{ bean.lastUpdateTime },
+			</if>
+			<if test="bean.folderType!=null">
+				folderType=#{ bean.folderType },
+			</if>
+			<if test="bean.fileCategory!=null">
+				fileCategory=#{ bean.fileCategory },
+			</if>
+			<if test="bean.fileType!=null">
+				fileType=#{ bean.fileType },
+			</if>
+			<if test="bean.status!=null">
+				status=#{ bean.status },
+			</if>
+			<if test="bean.recoveryTime!=null">
+				recoveryTime=#{ bean.recoveryTime },
+			</if>
+			<if test="bean.delFlag!=null">
+				delFlag=#{ bean.delFlag },
+			</if>
+		</set>
+		where fid=#{fid} and userId=#{uid} and status=#{oldStatus}
+	</update>
 
 </mapper>

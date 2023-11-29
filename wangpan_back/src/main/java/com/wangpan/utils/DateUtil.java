@@ -5,7 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DateUtils {
+public class DateUtil {
     private static final Object lockObj=new Object();
     private static Map<String, ThreadLocal<SimpleDateFormat>> sdfMap=new HashMap<>();
 

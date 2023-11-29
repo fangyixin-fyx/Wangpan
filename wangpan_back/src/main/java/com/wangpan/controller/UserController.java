@@ -13,7 +13,7 @@ import com.wangpan.enums.VerifyRegexEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
-import com.wangpan.utils.StringUtils;
+import com.wangpan.utils.StringTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -227,7 +227,7 @@ public class UserController extends ABaseController {
     public ResponseVO updatePassword(HttpSession session,String password){
         UserDto userDto =getUserInfoFromSession(session);
         User user=new User();
-        user.setPassword(StringUtils.encodeByMD5(password));
+        user.setPassword(StringTool.encodeByMD5(password));
         userService.updateUserByUid(user, userDto.getUid());
         return getSuccessResponseVO(null);
     }

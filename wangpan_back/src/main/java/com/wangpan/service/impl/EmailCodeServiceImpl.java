@@ -15,7 +15,7 @@ import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.EmailCodeMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
-import com.wangpan.utils.StringUtils;
+import com.wangpan.utils.StringTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -138,7 +138,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 			if(user!=null) throw new BusinessException("邮箱已存在！");
 		}
 		//获得随机数
-		String code = StringUtils.getRandomNumber(Constants.LENGTH_5);
+		String code = StringTool.getRandomNumber(Constants.LENGTH_5);
 		//重置已有验证码，置为无效
 		emailCodeMapper.disableEmailCode(email);
 		// 发送验证码

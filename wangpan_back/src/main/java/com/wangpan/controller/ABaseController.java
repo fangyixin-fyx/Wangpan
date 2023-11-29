@@ -6,7 +6,7 @@ import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.entity.vo.ResponseVO;
 import com.wangpan.enums.ResponseCodeEnum;
 import com.wangpan.utils.CopyUtil;
-import com.wangpan.utils.StringUtils;
+import com.wangpan.utils.StringTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class ABaseController {
 
     //读文件流
     protected void readFile(HttpServletResponse response,String filePath){
-        if(!StringUtils.pathIsOk(filePath))  return;
+        if(!StringTool.pathIsOk(filePath))  return;
         OutputStream out=null;
         FileInputStream in=null;
         try{
