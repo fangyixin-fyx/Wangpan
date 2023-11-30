@@ -62,4 +62,13 @@ public interface FileService {
 	UploadResultDto uploadFile(UserDto userDto, String fileId, MultipartFile file, String fileName,
 							   String filePid, String fileMd5, Integer chunkIndex, Integer chunks);
 
+	/**
+	 * 获取文件后缀名
+	 */
+	String getFileSuffix(String fileName);
+
+	/**
+	 * 获取特定文件的路径
+	 */
+	String findFilePath(String baseFilePath, String imageName);
 }

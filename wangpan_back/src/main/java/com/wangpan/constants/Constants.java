@@ -40,7 +40,10 @@ public class Constants {
     //缓存文件目录
     public static final String FOLD_TEMP="/temp/";
 
-
-
+    //视频文件切割ts文件
+    public static final String CMD_TRANSFER_2TS="ffmpeg -y -i %s -vcodec copy -acodec copy -vbsf h264_mp4toannexb %s";
+    public static final String CMD_CUT_TS="ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
+    public static final String TS_NAME="index.tx";
+    public static final String M3U8_NAME="index.m3u8";
 
 }

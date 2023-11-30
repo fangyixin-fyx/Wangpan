@@ -1,5 +1,6 @@
 package com.wangpan.service.impl;
 
+import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
@@ -16,6 +17,8 @@ import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.FileService;
 import com.wangpan.utils.DateUtil;
+import com.wangpan.utils.FfmpegUtils;
+import com.wangpan.utils.ScaleFilter;
 import com.wangpan.utils.StringTool;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -27,9 +30,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -46,9 +53,9 @@ public class FileServiceImpl implements FileService {
 	private UserMapper userMapper;
 	@Autowired
 	private BaseConfig baseConfig;
-	@Autowired
+	@Resource
 	@Lazy   //避免循环依赖
-	private FileServiceImpl fileService;
+	private FileServiceImpl fileServiceImpl;
 
 
 	private static final Logger logger= LoggerFactory.getLogger(FileServiceImpl.class);
@@ -170,7 +177,9 @@ public class FileServiceImpl implements FileService {
 					file0.setFileMd5(fileMd5);
 					//文件重命名，防止同名冲突
 					if (fileNameIsExist(filePid, uid, fileName)) {
-						fileName = getFileNameNoSuffix(fileName) + "_" + currentDate + getFileSuffix(fileName);
+						String timePattern=DateTimePatternEnum.YYYY_MM_DD_HH_MM_SS.getPattern();
+						fileName = getFileNameNoSuffix(fileName) + "_" + DateUtil.format(currentDate,timePattern) +
+								getFileSuffix(fileName);
 					}
 					file0.setFileName(fileName);
 					//更新用户使用空间
@@ -209,7 +218,7 @@ public class FileServiceImpl implements FileService {
 				return resultDto;
 			}
 
-			//最后一个分片进行异步合并分片
+			//最后一个分片上传完毕，进行异步合并分片
 			String month= DateUtil.format(new Date(),DateTimePatternEnum.YYYY_MM.getPattern());
 			String suffix= getFileSuffix(fileName);
 			String realFileName=currentUserFolder+suffix;
@@ -246,7 +255,7 @@ public class FileServiceImpl implements FileService {
 			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 				@Override
 				public void afterCommit() {
-					fileService.transferFile(fileInfo.getFid(),userDto); //这样调用异步管理才能生效
+					fileServiceImpl.transferFile(fileInfo.getFid(),userDto); //这样调用异步管理才能生效
 				}
 			});
 
@@ -301,7 +310,7 @@ public class FileServiceImpl implements FileService {
 	 *
 	 * @return 文件后缀名
 	 */
-	private String getFileSuffix(String fileName){
+	public String getFileSuffix(String fileName){
 		int index=fileName.lastIndexOf(".");
 		if(index==-1) return "";
 		return fileName.substring(index);
@@ -357,7 +366,27 @@ public class FileServiceImpl implements FileService {
 			//合并文件
 			unionFiles(fileFolder.getPath(),targetFilePath,fileInfo.getFileName(),true);
 
-			//视频文件切割
+			fileTypeEnum=FileTypeEnum.getFileTypeBySuffix(fileSuffix);
+			//视频文件切割，同时生成缩略图
+			if(fileTypeEnum==FileTypeEnum.VIDEO){
+				cutVideoFile(fileId,targetFilePath);
+				//生成视频缩略图
+				cover=currentUserFolderName+".png";
+				String coverPath=targetFolder.getPath()+"/"+cover;
+				ScaleFilter.createCover4Video(new File(targetFilePath),150,new File(coverPath));
+			}
+			//图像缩略图生成
+			else if(fileTypeEnum==FileTypeEnum.IMAGE){
+				cover=fileName.replace(".","_.");
+				String coverPath=targetFolder.getPath()+"/"+cover;
+				File targetPicFile=new File(targetFilePath);
+				File coverFile=new File(coverPath);
+				Boolean success=ScaleFilter.createCover4Pic(targetPicFile,150,coverFile,false);
+				if(!success){
+					//图太小就把原图复制给缩略图
+					FileUtils.copyFile(targetPicFile,coverFile);
+				}
+			}
 
 		}catch (Exception e){
 			logger.error("文件转码失败，文件ID:{}，userid:{}",fileId,userDto.getUid(),e);
@@ -422,5 +451,56 @@ public class FileServiceImpl implements FileService {
 			}
 		}
 	}
+
+
+	/**
+	 * 视频切割方法
+	 * @param videoFilePath:视频文件路径
+	 */
+	private void cutVideoFile(String fileId,String videoFilePath){
+		//创建同名切片目录
+		File tsFile=new File(videoFilePath.substring(0,videoFilePath.lastIndexOf(".")));
+		if(!tsFile.exists()){
+			tsFile.mkdirs();
+		}
+		//ffmpeg命令:先把视频文件转为ts文件然后再进行切割
+		String CMD_TRANSFER_2TS=Constants.CMD_TRANSFER_2TS;
+		String CMD_CUT_TS=Constants.CMD_CUT_TS;
+		String tsPath= tsFile.getPath()+"/"+Constants.TS_NAME;
+		//上传视频的编码格式必须是h264，否则不能转换为ts文件
+		//生成ts,播放的时候也是切片播放的
+		String cmd=String.format(CMD_TRANSFER_2TS,videoFilePath,tsPath);
+		FfmpegUtils.executeCommand(cmd,false);
+		//生成索引文件.m3u8和切片文件.ts
+		String m3u8Path=tsFile.getPath()+"/"+Constants.M3U8_NAME;
+		cmd=String.format(CMD_CUT_TS,tsPath,m3u8Path,tsFile.getPath(),fileId);
+		FfmpegUtils.executeCommand(cmd,false);
+		//删除index.tx
+		new File(tsPath).delete();
+
+	}
+
+	/**
+	 * 找到特定文件，并返回全部目录
+	 */
+	public String findFilePath(String folderPath,String fileName){
+		File folder=new File(folderPath);
+		if(folder.isDirectory()){
+			File[] files=folder.listFiles();
+			if(files!=null){
+				for(File file:files){
+					if(file.isDirectory()){
+						//进入子文件夹
+						String filePath=findFilePath(file.getAbsolutePath(),fileName);
+						if(filePath!=null) return filePath;
+					}else if(file.getName().equals(fileName)){
+						return file.getAbsolutePath();
+					}
+				}
+			}
+		}
+		return null;
+	}
+
 
 }
