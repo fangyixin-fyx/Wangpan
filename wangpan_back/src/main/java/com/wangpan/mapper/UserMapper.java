@@ -66,7 +66,7 @@ public interface UserMapper<T, P> extends BaseMapper{
 	Integer deleteByUsername(@Param("username") String username) ;
 
 	/**
-	 * 更新空间
+	 * 更新空间：累加
 	 */
 	Integer updateUserSpace(@Param("uid") String uid,@Param("useSpace") Long useSpace,@Param("totalSpace") Long totalSpace);
 

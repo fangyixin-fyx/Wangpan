@@ -55,7 +55,7 @@ public class FileServiceImpl implements FileService {
 	private BaseConfig baseConfig;
 	@Resource
 	@Lazy   //避免循环依赖
-	private FileServiceImpl fileServiceImpl;
+	private FileService fileServiceImpl;
 
 
 	private static final Logger logger= LoggerFactory.getLogger(FileServiceImpl.class);
@@ -199,9 +199,9 @@ public class FileServiceImpl implements FileService {
 				throw new BusinessException(ResponseCodeEnum.CODE_FILE);
 			}
 
-			//暂存临时目录temp
+			//找到暂存临时目录temp
 			String tempFoldName = baseConfig.getProjectFolder() + Constants.FOLD_TEMP;
-			String currentUserFolder = tempFoldName + userDto.getUid() + fileId;
+			String currentUserFolder = tempFoldName + uid + fileId;
 			tempFileFold = new File(currentUserFolder);
 			if (!tempFileFold.exists()) {
 				tempFileFold.mkdirs();
@@ -210,11 +210,12 @@ public class FileServiceImpl implements FileService {
 			//开始上传文件
 			File newFile=new File(tempFileFold.getPath()+"/"+chunkIndex);
 			file.transferTo(newFile);
+
 			//不是最后一个分片
 			if(chunkIndex<chunks-1){
 				resultDto.setStatus(UploadStatusEnum.UPLOADING.getCode());
 				//更新redis
-				redisComponent.setFileTempSize(userDto.getUid(),fileId,file.getSize());
+				redisComponent.setFileTempSize(uid,fileId,file.getSize());
 				return resultDto;
 			}
 
@@ -242,11 +243,14 @@ public class FileServiceImpl implements FileService {
 			fileInfo.setStatus(FileStatusEnum.TRANSFER.getStatus());
 			fileInfo.setFolderType(FileFolderTypeEnum.FILE.getType());
 			fileInfo.setDelFlag(FileDelFlagEnum.USING.getStatus());
+			//更新file表
 			fileMapper.insert(fileInfo);
 
 			//更新redis的用户空间数据
 			redisComponent.setFileTempSize(uid,fileId,file.getSize());
+			//获取文件的所有分片空间使用大小
 			Long totalSize=redisComponent.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
+			//更新user表
 			updateUserSpace(userDto,totalSize);
 
 			resultDto.setStatus(UploadStatusEnum.UPLOADED.getCode());
@@ -353,7 +357,7 @@ public class FileServiceImpl implements FileService {
 			String fileSuffix=getFileSuffix(fileInfo.getFileName());
 			String month=DateUtil.format(fileInfo.getCreateTime(),DateTimePatternEnum.YYYY_MM.getPattern());
 
-			//目标目录
+			//创建目标目录
 			String targetFolderBasePath=baseConfig.getProjectFolder()+Constants.FILE_PATH;
 			File targetFolder=new File(targetFolderBasePath+"/"+month);
 			if(!targetFolder.exists()){
@@ -369,6 +373,7 @@ public class FileServiceImpl implements FileService {
 			fileTypeEnum=FileTypeEnum.getFileTypeBySuffix(fileSuffix);
 			//视频文件切割，同时生成缩略图
 			if(fileTypeEnum==FileTypeEnum.VIDEO){
+				//视频文件切割，预览播放时使用切割文件进行播放
 				cutVideoFile(fileId,targetFilePath);
 				//生成视频缩略图
 				cover=currentUserFolderName+".png";
@@ -406,7 +411,7 @@ public class FileServiceImpl implements FileService {
 			throw new BusinessException("temp目录不存在");
 		}
 		File[] files=dir.listFiles();
-		File targetFile =new File(toFilePath);	//目标文件
+		File targetFile =new File(toFilePath);	//创建目标文件
 		RandomAccessFile writeFile=null;
 		try{
 			writeFile=new RandomAccessFile(targetFile,"rw");  //读写
@@ -419,8 +424,10 @@ public class FileServiceImpl implements FileService {
 				RandomAccessFile readFile=null;
 				try {
 					readFile=new RandomAccessFile(chunkFile,"r");
+					//将最多 bytes.length 个数据字节从此文件读入bytes数组。
 					while((len=readFile.read(bytes))!=-1){
 						//将读取数据写入文件
+						////从偏移量off处开始，将len个字节从bytes数组写入到此文件writeFile。
 						writeFile.write(bytes,0,len);
 					}
 				}catch (Exception e){
@@ -429,6 +436,15 @@ public class FileServiceImpl implements FileService {
 					readFile.close();
 				}
 			}
+			//删除临时文件
+			if(isDel&&dir.exists()){
+				try {
+					FileUtils.deleteDirectory(dir);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
 		}catch (Exception e){
 			logger.error("合并文件:{} 失败",fileName,e);
 			throw new BusinessException("合并文件"+fileName+"失败");
@@ -437,14 +453,6 @@ public class FileServiceImpl implements FileService {
 			if(writeFile!=null){
 				try {
 					writeFile.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			//删除临时文件
-			if(isDel&&dir.exists()){
-				try {
-					FileUtils.deleteDirectory(dir);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -475,7 +483,7 @@ public class FileServiceImpl implements FileService {
 		String m3u8Path=tsFile.getPath()+"/"+Constants.M3U8_NAME;
 		cmd=String.format(CMD_CUT_TS,tsPath,m3u8Path,tsFile.getPath(),fileId);
 		FfmpegUtils.executeCommand(cmd,false);
-		//删除index.tx
+		//删除index.ts
 		new File(tsPath).delete();
 
 	}

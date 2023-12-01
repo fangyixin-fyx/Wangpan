@@ -41,9 +41,11 @@ public class Constants {
     public static final String FOLD_TEMP="/temp/";
 
     //视频文件切割ts文件
+    //将输入视频文件的视频流和音频流直接拷贝到输出文件，并将视频流转换为 Annex B 格式。这通常用于一些特定的需求，比如将视频转换为MPEG-TS格式。
     public static final String CMD_TRANSFER_2TS="ffmpeg -y -i %s -vcodec copy -acodec copy -vbsf h264_mp4toannexb %s";
+    //将目标视频切割成每个时长为30秒的小段，输出文件名字为'路径/fid_4位数递增序号.ts'，第二个%s指定分割后的片段的存储路径
     public static final String CMD_CUT_TS="ffmpeg -i %s -c copy -map 0 -f segment -segment_list %s -segment_time 30 %s/%s_%%4d.ts";
-    public static final String TS_NAME="index.tx";
+    public static final String TS_NAME="index.ts";
     public static final String M3U8_NAME="index.m3u8";
 
 }

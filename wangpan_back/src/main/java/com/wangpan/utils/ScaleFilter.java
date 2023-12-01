@@ -18,6 +18,7 @@ public class ScaleFilter {
     private static final Logger logger= LoggerFactory.getLogger(ScaleFilter.class);
 
     public static void createCover4Video(File sourceFile, Integer width, File targetFile){
+        //从输入视频文件中提取第一帧，并进行大小调整%d*%d，生成一张静态图片。
         String cmd="ffmpeg -i %s -y -vframes 1 -vf scale=%d:%d/a %s";
         try{
             FfmpegUtils.executeCommand(String.format(cmd,sourceFile.getAbsoluteFile(),width,width,
@@ -40,7 +41,7 @@ public class ScaleFilter {
             compressImage(file,width,targetFile,delSource);
             return true;
         }catch (Exception e){
-            logger.error("生成图片缩略图失败",e);
+            logger.error("生成缩略图失败",e);
         }
         return false;
     }

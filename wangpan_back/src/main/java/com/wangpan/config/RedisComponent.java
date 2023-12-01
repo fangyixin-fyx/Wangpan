@@ -64,6 +64,9 @@ public class RedisComponent {
         return 0L;
     }
 
+    /**
+     * 累加空间
+     */
     public void setFileTempSize(String uid,String fid,Long fileSize){
         String key=Constants.REDIS_USER_FILE_TEMP_SIZE+uid+fid;
         Long currentSize=getFileSizeFromRedis(key);

@@ -23,7 +23,7 @@ public class FfmpegUtils {
         try{
             process=runtime.exec(cmd);
             //执行ffmpeg指令，取出输入流和错误流信息
-            //必须取出ffmpeg执行过程中产生的输出信息，如果不取的话，当输出流信息填满jvm存储输出流信息的缓冲区空间时，线程就会阻塞
+            //必须取出ffmpeg执行过程中产生的输出信息，如果不取的话，当输出流信息填满jvm存储输出流信息的缓冲区空间时，无法继续执行，线程就会阻塞
             PrintStream errorStream=new PrintStream(process.getErrorStream());
             PrintStream inputStream=new PrintStream(process.getInputStream());
             errorStream.start();
