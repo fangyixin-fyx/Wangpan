@@ -219,7 +219,7 @@ public class FileServiceImpl implements FileService {
 				return resultDto;
 			}
 
-			//最后一个分片上传完毕，进行异步合并分片
+			//最后一个分片上传完毕，记录数据库，同时异步合并分片
 			String month= DateUtil.format(new Date(),DateTimePatternEnum.YYYY_MM.getPattern());
 			String suffix= getFileSuffix(fileName);
 			String realFileName=currentUserFolder+suffix;
@@ -255,10 +255,11 @@ public class FileServiceImpl implements FileService {
 
 			resultDto.setStatus(UploadStatusEnum.UPLOADED.getCode());
 
-			//事务提交后再进行转码，即整个事务提交后再调用transferFile()
+			//事务提交后再进行异步合并分片，即整个事务提交后再调用transferFile()
 			TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 				@Override
 				public void afterCommit() {
+					//通过fileId去查文件，必须要等事务提交后才有fileId
 					fileServiceImpl.transferFile(fileInfo.getFid(),userDto); //这样调用异步管理才能生效
 				}
 			});
@@ -334,7 +335,7 @@ public class FileServiceImpl implements FileService {
 	}
 
 	/**
-	 * 文件转码，异步实现
+	 * 文件转码，异步合并分片
 	 * @param fileId
 	 * @param userDto
 	 */
@@ -345,7 +346,7 @@ public class FileServiceImpl implements FileService {
 		String cover=null;
 		FileTypeEnum fileTypeEnum=null;
 		FileInfo fileInfo=fileMapper.selectByFidAndUserId(fileId,userDto.getUid());
-		if(fileInfo==null || fileInfo.getStatus().equals(FileStatusEnum.TRANSFER)){
+		if(fileInfo==null || !fileInfo.getStatus().equals(FileStatusEnum.TRANSFER.getStatus())){
 			return;
 		}
 		try{
