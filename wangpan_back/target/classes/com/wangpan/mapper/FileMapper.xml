@@ -562,4 +562,8 @@
 		where fid=#{fid} and userId=#{uid} and status=#{oldStatus}
 	</update>
 
+	<select id="selectByFileMd5" resultMap="base_result_map">
+		select * from file where fileMd5=#{fileMd5}
+	</select>
+
 </mapper>

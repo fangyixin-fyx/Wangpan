@@ -201,7 +201,8 @@ public class FileServiceImpl implements FileService {
 
 			//找到暂存临时目录temp
 			String tempFoldName = baseConfig.getProjectFolder() + Constants.FOLD_TEMP;
-			String currentUserFolder = tempFoldName + uid + fileId;
+			//String currentUserFolder = tempFoldName + uid + fileId;
+			String currentUserFolder = tempFoldName + uid + fileMd5;
 			tempFileFold = new File(currentUserFolder);
 			if (!tempFileFold.exists()) {
 				tempFileFold.mkdirs();
@@ -352,7 +353,10 @@ public class FileServiceImpl implements FileService {
 		try{
 			//找到临时目录
 			String tempFileName=baseConfig.getProjectFolder()+"/"+Constants.FOLD_TEMP;
-			String currentUserFolderName=userDto.getUid()+fileId;
+			//String currentUserFolderName=userDto.getUid()+fileId;
+			String md5=fileInfo.getFileMd5();
+			String currentUserFolderName=userDto.getUid()+md5;
+
 			File fileFolder=new File(tempFileName+currentUserFolderName);
 
 			String fileSuffix=getFileSuffix(fileInfo.getFileName());
@@ -375,7 +379,7 @@ public class FileServiceImpl implements FileService {
 			//视频文件切割，同时生成缩略图
 			if(fileTypeEnum==FileTypeEnum.VIDEO){
 				//视频文件切割，预览播放时使用切割文件进行播放
-				cutVideoFile(fileId,targetFilePath);
+				cutVideoFile(fileId, targetFilePath);
 				//生成视频缩略图
 				cover=currentUserFolderName+".png";
 				String coverPath=targetFolder.getPath()+"/"+cover;
