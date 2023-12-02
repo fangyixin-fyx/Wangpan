@@ -1,6 +1,7 @@
 package com.wangpan.entity.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -13,9 +14,10 @@ import java.util.Date;
  */
 @Data
 public class FileVO {
+    @JsonProperty("fileId")
     private String fid;
     //父级ID
-    private String fPid;
+    private String filePid;
     private Long fileSize;
     private String fileName;
     //封面

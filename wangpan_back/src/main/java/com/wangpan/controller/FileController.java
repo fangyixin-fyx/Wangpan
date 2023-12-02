@@ -76,10 +76,24 @@ public class FileController extends ABaseController {
 		readFile(response,filePath);
 	}
 
+	/**
+	 * 读取视频文件接口
+	 */
 	@GetMapping("ts/getVideoInfo/{fileId}")
 	public void getVideoInfo(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
 		UserDto userDto=getUserInfoFromSession(session);
+		String filePath=fileService.getFile(fileId,userDto.getUid());
+		readFile(response,filePath);
+	}
 
+	/**
+	 * 读取文档接口
+	 */
+	@PostMapping("/getFile/{fileId}")
+	public void getFile(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
+		UserDto userDto=getUserInfoFromSession(session);
+		String filePath=fileService.getFile(fileId,userDto.getUid());
+		readFile(response,filePath);
 	}
 
 

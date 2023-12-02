@@ -73,4 +73,6 @@ public interface FileService {
 	String findFilePath(String baseFilePath, String imageName);
 
     void transferFile(String fid, UserDto userDto);
+
+	String getFile(String fid,String uid);
 }

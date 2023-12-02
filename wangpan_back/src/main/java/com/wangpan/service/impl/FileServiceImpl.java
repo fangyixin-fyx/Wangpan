@@ -515,15 +515,41 @@ public class FileServiceImpl implements FileService {
 		return null;
 	}
 
-	public void getFile(String fid,String uid){
-		FileInfo fileInfo=getFileByFidAndUserId(fid,uid);
-		if(fileInfo==null) return;
-		//如果是视频文件，预览时不能读取path属性，而是同文件夹下的切片文件
-		if(fileInfo.getFileCategory().equals(FileCategoryEnum.VIDEO.getCategory())){
-			String folderPath=baseConfig.getProjectFolder()+Constants.FILE_PATH+getFileNameNoSuffix(fileInfo.getFilePath());
-			//读取切片索引文件index.m3u8
-			String m3u8Path=folderPath+"/"+Constants.M3U8_NAME;
+	/**
+	 * 分片播放视频
+	 * @return 返回文件路径
+	 */
+	public String getFile(String fid,String uid){
+		FileInfo fileInfo=null;
+		String filePath=null;
+
+		if(fid.endsWith(".ts")){
+			String[] tsArray=fid.split("_");
+			String realFileId=tsArray[0];
+			fileInfo=getFileByFidAndUserId(realFileId,uid);
+		}else{
+			fileInfo=getFileByFidAndUserId(fid,uid);
 		}
+
+		if(fileInfo==null) return null;
+		String folderPath=baseConfig.getProjectFolder()+Constants.FILE_PATH;
+		//如果是视频文件，预览时不读取path值，而是同文件夹下的切片文件
+		if(fileInfo.getFileCategory().equals(FileCategoryEnum.VIDEO.getCategory())){
+			//String folderPath=baseConfig.getProjectFolder()+Constants.FILE_PATH+getFileNameNoSuffix(fileInfo.getFilePath());
+			if(fid.endsWith(".ts")){
+				filePath=folderPath+getFileNameNoSuffix(fileInfo.getFilePath())+"/"+fid;
+			}else{
+				//读取切片索引文件index.m3u8
+				String m3u8Path=folderPath+getFileNameNoSuffix(fileInfo.getFilePath())+"/"+Constants.M3U8_NAME;
+				filePath=m3u8Path;
+			}
+
+		}else{	//文档文件
+			filePath=folderPath+fileInfo.getFilePath();
+		}
+		File file=new File(filePath);
+		if(!file.exists()) return null;
+		return filePath;
 	}
 
 

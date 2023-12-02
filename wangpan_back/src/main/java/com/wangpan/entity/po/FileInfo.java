@@ -1,6 +1,7 @@
 package com.wangpan.entity.po;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -9,6 +10,7 @@ import java.util.Date;
 
 @Data
 public class FileInfo implements Serializable{
+
 	private String fid;
 	private String userId;
 	// 文件MD5值
@@ -48,7 +50,7 @@ public class FileInfo implements Serializable{
 
 	@Override
 	public String toString(){
-		return "	fid:"+this.fid+"	userId:"+this.userId+"	fileMd5:"+this.fileMd5+"	filePid:"+this.filePid+"	fileSize:"+this.fileSize+"	fileName:"+this.fileName+"	fileCover:"+this.fileCover+"	filePath:"+this.filePath+"	createTime:"+this.createTime+"	lastUpdateTime:"+this.lastUpdateTime+"	folderType:"+this.folderType+"	category:"+this.fileCategory+"	fileType:"+this.fileType+"	status:"+this.status+"	recoveryTime:"+this.recoveryTime+"	delFlag:"+this.delFlag;
+		return "	fileId:"+this.fid+"	userId:"+this.userId+"	fileMd5:"+this.fileMd5+"	filePid:"+this.filePid+"	fileSize:"+this.fileSize+"	fileName:"+this.fileName+"	fileCover:"+this.fileCover+"	filePath:"+this.filePath+"	createTime:"+this.createTime+"	lastUpdateTime:"+this.lastUpdateTime+"	folderType:"+this.folderType+"	category:"+this.fileCategory+"	fileType:"+this.fileType+"	status:"+this.status+"	recoveryTime:"+this.recoveryTime+"	delFlag:"+this.delFlag;
 	}
 
 }
