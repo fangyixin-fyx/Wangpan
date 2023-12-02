@@ -1,7 +1,11 @@
 package com.wangpan.mapper;
 
+import com.wangpan.entity.po.FileInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
 
 @Mapper
 public interface FileMapper<T, P> extends BaseMapper{
@@ -29,4 +33,6 @@ public interface FileMapper<T, P> extends BaseMapper{
 	 * 更新状态，乐观锁
 	 */
 	void updateStatusWithOldStatus(@Param("fid") String fileId,@Param("uid") String userId,@Param("bean") T t,@Param("oldStatus") Integer oldStatus);
+
+	List<FileInfo> selectByFileMd5(@Param("fileMd5") String fileMd5);
 }

@@ -154,12 +154,12 @@ public class FileServiceImpl implements FileService {
 
 			//第一个分片
 			if(chunkIndex==0) {
-				FileQuery fileQuery = new FileQuery();
-				fileQuery.setFileMd5(fileMd5);
-				fileQuery.setSimplePage(new SimplePage(0, 1));
-				fileQuery.setStatus(FileStatusEnum.TRANSFER.getStatus());
+				//FileQuery fileQuery = new FileQuery();
+				//fileQuery.setFileMd5(fileMd5);
+				//fileQuery.setSimplePage(new SimplePage(0, 1));
+				//fileQuery.setStatus(FileStatusEnum.TRANSFER.getStatus());
 				//如果数据库已经有这个文件，直接秒传
-				List<FileInfo> dbFileList = fileMapper.selectList(fileQuery);
+				List<FileInfo> dbFileList = fileMapper.selectByFileMd5(fileMd5);
 				if (!dbFileList.isEmpty()) {
 					FileInfo file0 = dbFileList.get(0);
 					//判断空间大小
@@ -174,7 +174,6 @@ public class FileServiceImpl implements FileService {
 					file0.setLastUpdateTime(currentDate);
 					file0.setStatus(FileStatusEnum.SUCCESS.getStatus());
 					file0.setDelFlag(FileDelFlagEnum.USING.getStatus());
-					file0.setFileMd5(fileMd5);
 					//文件重命名，防止同名冲突
 					if (fileNameIsExist(filePid, uid, fileName)) {
 						String timePattern=DateTimePatternEnum.YYYY_MM_DD_HH_MM_SS.getPattern();
@@ -185,7 +184,8 @@ public class FileServiceImpl implements FileService {
 					//更新用户使用空间
 					updateUserSpace(userDto, file0.getFileSize());
 					//更新文件表信息
-					fileMapper.updateByFidAndUserId(file0, fileId, file0.getUserId());
+					//fileMapper.updateByFidAndUserId(file0,dbFileList.get(0).getFid(),dbFileList.get(0).getUserId());
+					fileMapper.insert(file0);
 
 					resultDto.setStatus(UploadStatusEnum.UPLOAD_SECOND.getCode());
 					return resultDto;
