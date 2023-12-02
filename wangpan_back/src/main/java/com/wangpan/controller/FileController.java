@@ -76,4 +76,11 @@ public class FileController extends ABaseController {
 		readFile(response,filePath);
 	}
 
+	@GetMapping("ts/getVideoInfo/{fileId}")
+	public void getVideoInfo(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
+		UserDto userDto=getUserInfoFromSession(session);
+
+	}
+
+
 }

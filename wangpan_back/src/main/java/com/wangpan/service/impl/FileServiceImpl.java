@@ -223,7 +223,7 @@ public class FileServiceImpl implements FileService {
 			//最后一个分片上传完毕，记录数据库，同时异步合并分片
 			String month= DateUtil.format(new Date(),DateTimePatternEnum.YYYY_MM.getPattern());
 			String suffix= getFileSuffix(fileName);
-			String realFileName=currentUserFolder+suffix;
+			String realFileName=uid+fileMd5+suffix;
 			FileTypeEnum fileTypeEnum=FileTypeEnum.getFileTypeBySuffix(suffix);
 			//重命名
 			if(fileNameIsExist(filePid,userDto.getUid(),fileName)){
@@ -513,6 +513,17 @@ public class FileServiceImpl implements FileService {
 			}
 		}
 		return null;
+	}
+
+	public void getFile(String fid,String uid){
+		FileInfo fileInfo=getFileByFidAndUserId(fid,uid);
+		if(fileInfo==null) return;
+		//如果是视频文件，预览时不能读取path属性，而是同文件夹下的切片文件
+		if(fileInfo.getFileCategory().equals(FileCategoryEnum.VIDEO.getCategory())){
+			String folderPath=baseConfig.getProjectFolder()+Constants.FILE_PATH+getFileNameNoSuffix(fileInfo.getFilePath());
+			//读取切片索引文件index.m3u8
+			String m3u8Path=folderPath+"/"+Constants.M3U8_NAME;
+		}
 	}
 
 
