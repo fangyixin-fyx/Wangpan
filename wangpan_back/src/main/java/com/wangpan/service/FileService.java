@@ -74,5 +74,15 @@ public interface FileService {
 
     void transferFile(String fid, UserDto userDto);
 
+	/**
+	 * 获取文件路径
+	 * @return:文件路径
+	 */
 	String getFile(String fid,String uid);
+
+	/**
+	 * 创建目录
+	 * @return 返回创建的目录对象
+	 */
+	FileInfo createNewFolder(String filePid,String uid,String folderName);
 }

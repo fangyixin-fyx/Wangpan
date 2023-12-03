@@ -552,5 +552,40 @@ public class FileServiceImpl implements FileService {
 		return filePath;
 	}
 
+	public FileInfo createNewFolder(String filePid,String uid,String folderName){
+		FileInfo fileInfo=new FileInfo();
+		//文件名重复检测
+		if(checkFileName(filePid,uid,folderName,FileFolderTypeEnum.FOLDER.getType())!=0){
+			throw new BusinessException("此目录下已存在同名文件，请修改名称");
+		}
+		Date currDate=new Date();
+		fileInfo.setFilePid(filePid);
+		fileInfo.setUserId(uid);
+		fileInfo.setFileName(folderName);
+		fileInfo.setFolderType(FileFolderTypeEnum.FOLDER.getType());
+		fileInfo.setCreateTime(currDate);
+		fileInfo.setLastUpdateTime(currDate);
+		fileInfo.setFid(StringTool.getRandomNumber(Constants.LENGTH_10));
+		fileInfo.setStatus(FileStatusEnum.SUCCESS.getStatus());
+		fileInfo.setDelFlag(FileDelFlagEnum.USING.getStatus());
+		//插入数据库
+		fileMapper.insert(fileInfo);
+		return fileInfo;
+	}
+
+	private int checkFileName(String filePid,String uid,String name,Integer folderType){
+		FileQuery fileInfo=new FileQuery();
+		fileInfo.setFilePid(filePid);
+		fileInfo.setFileName(name);
+		fileInfo.setUserId(uid);
+		fileInfo.setFolderType(folderType);
+		int count=fileMapper.selectCount(fileInfo);
+		if(count>0){
+			return 1;
+		}
+		return 0;
+
+	}
+
 
 }

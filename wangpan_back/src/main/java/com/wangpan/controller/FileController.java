@@ -88,12 +88,24 @@ public class FileController extends ABaseController {
 
 	/**
 	 * 读取文档接口
+	 * @return: 文件流直接写入response里，不需要返回
 	 */
 	@PostMapping("/getFile/{fileId}")
 	public void getFile(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
 		UserDto userDto=getUserInfoFromSession(session);
 		String filePath=fileService.getFile(fileId,userDto.getUid());
 		readFile(response,filePath);
+	}
+
+	/**
+	 * 新建目录
+	 */
+	@PostMapping("/newFoloder")
+	public ResponseVO createNewFolder(HttpSession session,@RequestParam("filePid") String filePid,
+								@RequestParam("fileName") String folderName){
+		UserDto userDto=getUserInfoFromSession(session);
+		FileInfo fileInfo=fileService.createNewFolder(filePid,userDto.getUid(),folderName);
+		return getSuccessResponseVO(fileInfo);
 	}
 
 
