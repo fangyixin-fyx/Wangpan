@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.List;
 
 
 @RestController
@@ -106,6 +107,16 @@ public class FileController extends ABaseController {
 		UserDto userDto=getUserInfoFromSession(session);
 		FileInfo fileInfo=fileService.createNewFolder(filePid,userDto.getUid(),folderName);
 		return getSuccessResponseVO(fileInfo);
+	}
+
+	/**
+	 * 获取当前目录层级
+	 */
+	@PostMapping("/getFolderInfo")
+	public ResponseVO getFolderInfo(HttpSession session,String path){
+		String uid=getUserInfoFromSession(session).getUid();
+		List<FileInfo> fileInfoList=fileService.getFolderInfo(path,uid);
+		return getSuccessResponseVO(fileInfoList);
 	}
 
 

@@ -85,4 +85,9 @@ public interface FileService {
 	 * @return 返回创建的目录对象
 	 */
 	FileInfo createNewFolder(String filePid,String uid,String folderName);
+
+	/**
+	 * 根据路径id获取该目录下的所有文件夹
+	 */
+	List<FileInfo> getFolderInfo(String path,String userId);
 }

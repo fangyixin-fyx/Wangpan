@@ -10,7 +10,7 @@ import java.util.Date;
 
 @Data
 public class FileInfo implements Serializable{
-
+	@JsonProperty("fileId")
 	private String fid;
 	private String userId;
 	// 文件MD5值

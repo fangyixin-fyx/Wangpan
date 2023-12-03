@@ -21,6 +21,7 @@ import com.wangpan.utils.FfmpegUtils;
 import com.wangpan.utils.ScaleFilter;
 import com.wangpan.utils.StringTool;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -585,6 +587,20 @@ public class FileServiceImpl implements FileService {
 		}
 		return 0;
 
+	}
+
+	public List<FileInfo> getFolderInfo(String path,String userId){
+		String[] fidArray=path.split("/");
+		FileQuery fileQuery=new FileQuery();
+		fileQuery.setUserId(userId);
+		fileQuery.setFolderType(FileFolderTypeEnum.FOLDER.getType());
+		fileQuery.setFileIdArray(fidArray);
+		//根据路径fid先后进行排序，即父级在前
+		String orderBy="field(fid,\""+ StringUtils.join(fidArray,"\",\"") +"\")";
+		fileQuery.setOrderBy(orderBy);
+		List<FileInfo> fileInfoList=new ArrayList<>();
+		fileInfoList=findListByParam(fileQuery);
+		return fileInfoList;
 	}
 
 

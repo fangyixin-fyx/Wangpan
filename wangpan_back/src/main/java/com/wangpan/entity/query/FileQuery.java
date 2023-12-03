@@ -49,6 +49,8 @@ public class FileQuery extends BaseQuery {
 	private String recoveryTimeEnd;
 	// 0：删除   1：回收站   2：正常
 	private Integer delFlag;
+	//
+	private String[] fileIdArray;
 
 
 
