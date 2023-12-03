@@ -96,4 +96,11 @@ public interface FileService {
 	 * @return：重命名的文件对象
 	 */
 	FileInfo rename(String fileId, String fileName);
+
+	/**
+	 * 移动多个文件到其他文件夹
+	 * @param fileIDs
+	 * @param pid
+	 */
+	void changeFilesPid(String fileIDs, String pid);
 }

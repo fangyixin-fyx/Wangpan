@@ -138,9 +138,12 @@
 		<if test="query.recoveryTimeEnd !=null and query.recoveryTimeEnd!=''">
 			<![CDATA[ and recoveryTime < date_sub(str_to_date(#{query.recoveryTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
 		</if>
-		 <if test="query.fileIdArray!=null and query.fileIdArray.length>0">
-			 and fid in(<foreach collection="query.fileIdArray" item="item" separator=",">#{item}</foreach>)
-		 </if>
+		<if test="query.fileIdArray!=null and query.fileIdArray.length>0">
+			and fid in(<foreach collection="query.fileIdArray" item="item" separator=",">#{item}</foreach>)
+		</if>
+		<if test="query.excludeFileIdArray!=null and query.excludeFileIdArray.length>0">
+			and fid not in(<foreach collection="query.excludeFileIdArray" item="item" separator=",">#{item}</foreach>)
+		</if>
 	</sql>
 
 	<!--通用查询条件列-->
@@ -571,6 +574,65 @@
 
 	<select id="selectByFid" resultMap="base_result_map">
 		select * from file where fid=#{fid}
+	</select>
+
+	<update id="updateFileByFid" parameterType="FileInfo">
+		update file
+		<set>
+			<if test="bean.fid!=null">
+				fid=#{ bean.fid },
+			</if>
+			<if test="bean.userId!=null">
+				userId=#{ bean.userId },
+			</if>
+			<if test="bean.fileMd5!=null">
+				fileMd5=#{ bean.fileMd5 },
+			</if>
+			<if test="bean.filePid!=null">
+				filePid=#{ bean.filePid },
+			</if>
+			<if test="bean.fileSize!=null">
+				fileSize=#{ bean.fileSize },
+			</if>
+			<if test="bean.fileName!=null">
+				fileName=#{ bean.fileName },
+			</if>
+			<if test="bean.fileCover!=null">
+				fileCover=#{ bean.fileCover },
+			</if>
+			<if test="bean.filePath!=null">
+				filePath=#{ bean.filePath },
+			</if>
+			<if test="bean.createTime!=null">
+				createTime=#{ bean.createTime },
+			</if>
+			<if test="bean.lastUpdateTime!=null">
+				lastUpdateTime=#{ bean.lastUpdateTime },
+			</if>
+			<if test="bean.folderType!=null">
+				folderType=#{ bean.folderType },
+			</if>
+			<if test="bean.fileCategory!=null">
+				fileCategory=#{ bean.fileCategory },
+			</if>
+			<if test="bean.fileType!=null">
+				fileType=#{ bean.fileType },
+			</if>
+			<if test="bean.status!=null">
+				status=#{ bean.status },
+			</if>
+			<if test="bean.recoveryTime!=null">
+				recoveryTime=#{ bean.recoveryTime },
+			</if>
+			<if test="bean.delFlag!=null">
+				delFlag=#{ bean.delFlag },
+			</if>
+		</set>
+		where fid=#{fid}
+	</update>
+
+	<select id="getFileNameByPid" resultType="String">
+		select fileName from file where filePid=#{pid}
 	</select>
 
 </mapper>

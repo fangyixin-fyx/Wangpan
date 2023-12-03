@@ -625,4 +625,36 @@ public class FileServiceImpl implements FileService {
 		}
 
 	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void changeFilesPid(String fileIDs, String pid){
+		if(StringTool.isEmpty(fileIDs) || StringTool.isEmpty(pid) ||
+				(!pid.equals(Constants.ROOT_PID) &&fileMapper.selectByFid(pid)==null)){
+			throw new BusinessException("移动文件失败，目标移动文件或目标目录不存在！");
+		}
+
+		String[] fids=fileIDs.split(",");
+		FileInfo fileInfo=new FileInfo();
+		Date currDate=new Date();
+		//获取该目录下的所有文件的名字
+		List<String> existFileName=fileMapper.getFileNameByPid(pid);
+		//将这些文件的pid修改
+		for(String fid:fids){
+			fileInfo=fileMapper.selectByFid(fid);
+
+			//判断目标移动文件与目标目录是否在同一个目录
+			if(fileInfo.getFilePid().equals(pid)){
+				throw new BusinessException(fileInfo.getFileName()+"文件已在该目录");
+			}
+			//判断移动目录是否有同名文件
+			String fileName=fileInfo.getFileName();
+			if(existFileName.contains(fileName)){
+				fileInfo.setFileName(getFileNameNoSuffix(fileName)+"_"+
+						DateUtil.format(currDate,DateTimePatternEnum.YYYY_MM_DD_HH.getPattern())+getFileSuffix(fileName));
+			}
+			fileInfo.setFilePid(pid);
+			fileInfo.setLastUpdateTime(currDate);
+			fileMapper.updateFileByFid(fileInfo,fid);
+		}
+	}
 }

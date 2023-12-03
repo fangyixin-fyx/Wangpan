@@ -49,9 +49,10 @@ public class FileQuery extends BaseQuery {
 	private String recoveryTimeEnd;
 	// 0：删除   1：回收站   2：正常
 	private Integer delFlag;
-	//
+	//路径参数fileId
 	private String[] fileIdArray;
-
+	//要移动的文件的id
+	private String[] excludeFileIdArray;
 
 
 }

@@ -37,4 +37,8 @@ public interface FileMapper<T, P> extends BaseMapper{
 	List<FileInfo> selectByFileMd5(@Param("fileMd5") String fileMd5);
 
 	FileInfo selectByFid(@Param(("fid")) String fileId);
+
+    void updateFileByFid(@Param("bean") T t, @Param("fid") String fid);
+
+	List<String> getFileNameByPid(@Param("pid") String pid);
 }

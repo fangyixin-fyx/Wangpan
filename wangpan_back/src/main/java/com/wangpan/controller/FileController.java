@@ -12,8 +12,10 @@ import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.entity.vo.ResponseVO;
 import com.wangpan.enums.FileCategoryEnum;
 import com.wangpan.enums.FileDelFlagEnum;
+import com.wangpan.enums.FileFolderTypeEnum;
 import com.wangpan.enums.FileStatusEnum;
 import com.wangpan.service.FileService;
+import com.wangpan.utils.CopyUtil;
 import com.wangpan.utils.StringTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -116,7 +118,9 @@ public class FileController extends ABaseController {
 	public ResponseVO getFolderInfo(HttpSession session,String path){
 		String uid=getUserInfoFromSession(session).getUid();
 		List<FileInfo> fileInfoList=fileService.getFolderInfo(path,uid);
-		return getSuccessResponseVO(fileInfoList);
+		//包装类
+		List<FileVO> result=CopyUtil.copyList(fileInfoList, FileVO.class);
+		return getSuccessResponseVO(result);
 	}
 
 	/**
@@ -125,7 +129,39 @@ public class FileController extends ABaseController {
 	@PostMapping("/rename")
 	public ResponseVO rename(@RequestParam("fileId") String fileId,@RequestParam("fileName") String fileName){
 		FileInfo fileInfo=fileService.rename(fileId,fileName);
-		return getSuccessResponseVO(fileInfo);
+		return getSuccessResponseVO(CopyUtil.copy(fileInfo, FileVO.class));
+	}
+
+	/**
+	 * 获取可移动的所有目录，方便移动文件
+	 * @param pid:用于获取当前层级下的所有文件
+	 * @param currentFids：用于排除要移动的文件
+	 * @return 可移动的所有目录对象
+	 */
+	@PostMapping("/loadAllFolder")
+	public ResponseVO getAllFolder(HttpSession session,@RequestParam("filePid") String pid,
+								   @RequestParam("currentFileIds") String currentFids){
+		String uid=getUserInfoFromSession(session).getUid();
+		FileQuery fileQuery=new FileQuery();
+		fileQuery.setFilePid(pid);
+		fileQuery.setUserId(uid);
+		fileQuery.setOrderBy("createTime desc");
+		if(!StringTool.isEmpty(currentFids)){
+			fileQuery.setExcludeFileIdArray(currentFids.split(","));
+		}
+		fileQuery.setDelFlag(FileDelFlagEnum.USING.getStatus());
+		fileQuery.setFolderType(FileFolderTypeEnum.FOLDER.getType());
+		List<FileInfo> result=fileService.findListByParam(fileQuery);
+		return getSuccessResponseVO(CopyUtil.copyList(result, FileVO.class));
+	}
+
+	@PostMapping("/changeFileFolder")
+	public ResponseVO changeFilesToOtherFolder(HttpSession session,@RequestParam("filePid") String pid,
+								   @RequestParam("fileIds") String fileIDs){
+		String uid=getUserInfoFromSession(session).getUid();
+		FileQuery fileQuery=new FileQuery();
+		fileService.changeFilesPid(fileIDs,pid);
+		return getSuccessResponseVO(null);
 	}
 
 }
