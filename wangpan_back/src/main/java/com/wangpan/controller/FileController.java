@@ -119,5 +119,13 @@ public class FileController extends ABaseController {
 		return getSuccessResponseVO(fileInfoList);
 	}
 
+	/**
+	 * 文件重命名
+	 */
+	@PostMapping("/rename")
+	public ResponseVO rename(@RequestParam("fileId") String fileId,@RequestParam("fileName") String fileName){
+		FileInfo fileInfo=fileService.rename(fileId,fileName);
+		return getSuccessResponseVO(fileInfo);
+	}
 
 }

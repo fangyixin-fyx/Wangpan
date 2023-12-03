@@ -569,4 +569,8 @@
 		select * from file where fileMd5=#{fileMd5}
 	</select>
 
+	<select id="selectByFid" resultMap="base_result_map">
+		select * from file where fid=#{fid}
+	</select>
+
 </mapper>

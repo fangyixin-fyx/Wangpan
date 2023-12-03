@@ -90,4 +90,10 @@ public interface FileService {
 	 * 根据路径id获取该目录下的所有文件夹
 	 */
 	List<FileInfo> getFolderInfo(String path,String userId);
+
+	/**
+	 *文件重命名
+	 * @return：重命名的文件对象
+	 */
+	FileInfo rename(String fileId, String fileName);
 }

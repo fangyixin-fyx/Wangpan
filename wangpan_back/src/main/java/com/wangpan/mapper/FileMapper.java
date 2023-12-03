@@ -35,4 +35,6 @@ public interface FileMapper<T, P> extends BaseMapper{
 	void updateStatusWithOldStatus(@Param("fid") String fileId,@Param("uid") String userId,@Param("bean") T t,@Param("oldStatus") Integer oldStatus);
 
 	List<FileInfo> selectByFileMd5(@Param("fileMd5") String fileMd5);
+
+	FileInfo selectByFid(@Param(("fid")) String fileId);
 }

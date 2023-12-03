@@ -1,6 +1,5 @@
 package com.wangpan.service.impl;
 
-import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
@@ -31,13 +30,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -603,5 +598,31 @@ public class FileServiceImpl implements FileService {
 		return fileInfoList;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
+	public FileInfo rename(String fileId, String fileName){
+		FileInfo fileInfo=fileMapper.selectByFid(fileId);
+		if(fileInfo==null){
+			throw new BusinessException("未根据fid找到相关文件");
+		}
+		String uid=fileInfo.getUserId();
+		Integer folderType=fileInfo.getFolderType();
+		if(folderType.equals(FileFolderTypeEnum.FILE.getType())){
+			String suffix=getFileSuffix(fileInfo.getFileName());
+			fileName=fileName+suffix;
+		}
+		//检查名字是否已存在
+		if(checkFileName(fileInfo.getFilePid(),uid,fileName,folderType)!=0){
+			throw new BusinessException("该文件名称已存在，请重新命名");
+		}
+		//修改名称
+		fileInfo.setFileName(fileName);
+		fileInfo.setLastUpdateTime(new Date());
+		int res=fileMapper.updateByFidAndUserId(fileInfo,fileId,uid);
+		if(res==1){
+			return fileInfo;
+		}else{
+			throw new BusinessException("重命名失败！");
+		}
 
+	}
 }
