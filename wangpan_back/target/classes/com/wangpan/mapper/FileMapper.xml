@@ -642,7 +642,7 @@
 				delFlag=#{delFlag},
 			</if>
 			<if test="currTime!=null">
-				lastUpdateTime=#{currTime}
+				lastUpdateTime=#{currTime},recoveryTime=#{currTime}
 			</if>
 		</set>
 		where fid=#{fid}
