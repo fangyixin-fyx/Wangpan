@@ -35,7 +35,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -702,7 +701,6 @@ public class FileServiceImpl implements FileService {
 		Date currTime=new Date();
 
 		String uid=null;
-		Long delSize=0L;
 		for(String fid:fidArray){
 			fileInfo=fileMapper.selectByFid(fid);
 			if(fileInfo==null){
@@ -711,37 +709,25 @@ public class FileServiceImpl implements FileService {
 			uid=fileInfo.getUserId();
 			//如果是文件直接移入回收站，文件夹则递归删除子文件
 			if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
-				delSize+=delSubFiles(fileInfo.getFid(),uid);
-			}else{
-				delSize+=fileInfo.getFileSize();
+				delSubFiles(fileInfo.getFid(),uid);
 			}
 			//将文件移入回收站
 			fileMapper.delByFid(fid,FileDelFlagEnum.RECYCLE.getStatus(),currTime);
 
 		}
-		//更新数据库用户空间
-		//UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
-		//Long size=userSpaceDto.getUseSpace()-delSize;
-		//userMapper.updateUserSpace2(uid,size,userSpaceDto.getTotalSpace());
-		//userSpaceDto.setUseSpace(size);
-		//redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public Long delSubFiles(String pid,String uid){
+	public void delSubFiles(String pid, String uid){
 		List<FileInfo> subFiles=fileMapper.selectFileByUidAndPid(uid,pid);
-		if(subFiles==null) return 0L;
+		if(subFiles==null) return;
 		Date currTime=new Date();
-		Long size=0L;
 		for(FileInfo subFile:subFiles){
 			fileMapper.delByFid(subFile.getFid(),FileDelFlagEnum.DEL.getStatus(), currTime);
-			if(subFile.getFolderType().equals(FileFolderTypeEnum.FILE.getType())){
-				size+=subFile.getFileSize();
-			}else{
-				//递归处理
-				size+=delSubFiles(uid,subFile.getFid());
+			if(subFile.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+				delSubFiles(uid,subFile.getFid());
 			}
 		}
-		return size;
 	}
 }

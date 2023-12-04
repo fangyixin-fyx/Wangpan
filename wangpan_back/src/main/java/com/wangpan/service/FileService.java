@@ -5,6 +5,8 @@ import com.wangpan.dto.UserDto;
 import com.wangpan.entity.po.FileInfo;
 import com.wangpan.entity.query.FileQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
@@ -116,4 +118,6 @@ public interface FileService {
 	Map<String,String> download(String code);
 
 	void removeFileToRecycleBin(String fids);
+
+	void delSubFiles(String pid, String uid);
 }
