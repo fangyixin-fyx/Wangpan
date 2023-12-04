@@ -120,4 +120,15 @@ public interface FileService {
 	void removeFileToRecycleBin(String fids);
 
 	void delSubFiles(String pid, String uid);
+
+	/**
+	 * 恢复文件
+	 */
+	void recoveryFile(FileQuery fileQuery);
+
+	/**
+	 * 递归恢复目录文件夹下的子文件
+	 * @param pid
+	 */
+	//void recoverySubFiles(String pid);
 }

@@ -730,4 +730,52 @@ public class FileServiceImpl implements FileService {
 			}
 		}
 	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void recoveryFile(FileQuery fileQuery){
+		List<FileInfo> fileList=fileMapper.selectList(fileQuery);
+		if(fileList==null || fileList.size()<1) return;
+		Date currTime=new Date();
+		String uid=null;
+		for(FileInfo file:fileList){
+			uid=file.getUserId();
+			if(file.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+				//恢复子文件
+				FileQuery subFileQuery=new FileQuery();
+				subFileQuery.setFilePid(file.getFid());
+				subFileQuery.setUserId(uid);
+				subFileQuery.setDelFlag(FileDelFlagEnum.DEL.getStatus());
+				recoveryFile(subFileQuery);
+			}
+			//如果是delFlag标记为回收站，则恢复到根目录，因为上一级目录可能已不存在
+			if(file.getDelFlag().equals(FileDelFlagEnum.RECYCLE.getStatus())){
+				file.setFilePid(Constants.ROOT_PID);
+			}
+			file.setLastUpdateTime(currTime);
+			file.setDelFlag(FileDelFlagEnum.USING.getStatus());
+			//检查是否有重名
+			String fileName=file.getFileName();
+			if(checkFileName(file.getFilePid(),uid,fileName,file.getFolderType())>0){
+				file.setFileName(fileName+DateUtil.format(currTime,DateTimePatternEnum.YYYY_MM_DD_HH.getPattern()));
+			}
+			fileMapper.updateFileByFid(file,file.getFid());
+		}
+		return;
+	}
+
+	/*
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void recoverySubFiles(String uid,String pid){
+		List<FileInfo> subFiles=fileMapper.selectFileByUidAndPid(uid,pid);
+		if(subFiles==null) return;
+
+		for(FileInfo subFile:subFiles){
+			if(subFile.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+				recoverySubFiles(subFile.getUserId(),subFile.getFid());
+			}
+			subFile.set
+		}
+	}
+
+	 */
 }

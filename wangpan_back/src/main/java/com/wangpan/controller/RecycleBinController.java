@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
+import java.util.Arrays;
 
 /**
  * 回收站
@@ -41,6 +42,16 @@ public class RecycleBinController extends ABaseController{
         PaginationResultVO<FileInfo> resultVO=fileService.findListByPage(fileQuery);
         //将FileInfo转为FileInfoVO
         return getSuccessResponseVO(convert2PaginationVO(resultVO, FileVO.class));
+    }
+
+    @PostMapping("/recoverFile")
+    public ResponseVO recoveryFile(@RequestParam("fileIds") String fileIds){
+        String[] fileArray=fileIds.split(",");
+        FileQuery fileQuery=new FileQuery();
+        fileQuery.setFileIdArray(fileArray);
+        fileQuery.setDelFlag(FileDelFlagEnum.RECYCLE.getStatus());
+        fileService.recoveryFile(fileQuery);
+        return getSuccessResponseVO(null);
     }
 
 }
