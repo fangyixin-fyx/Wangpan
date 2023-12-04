@@ -510,7 +510,7 @@
 
 	<!--根据id查找已使用空间大小-->
 	<select id="getUsedSpaceByUid" resultType="Long">
-		select IFNULL(SUM(fileSize),0) from file where userId=#{userId} and delFlag=2
+		select IFNULL(SUM(fileSize),0) from file where userId=#{userId}
 	</select>
 
 	<update id="updateStatusWithOldStatus">
