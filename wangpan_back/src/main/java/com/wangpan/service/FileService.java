@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 
 public interface FileService {
 	/** 
@@ -103,4 +104,14 @@ public interface FileService {
 	 * @param pid
 	 */
 	void changeFilesPid(String fileIDs, String pid);
+
+	/**
+	 * 下载校验
+	 */
+	String createDownloadUrl(String fid,String uid);
+
+	/**
+	 * 下载文件
+	 */
+	Map<String,String> download(String code);
 }

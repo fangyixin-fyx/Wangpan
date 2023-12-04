@@ -1,6 +1,7 @@
 package com.wangpan.config;
 
 import com.wangpan.constants.Constants;
+import com.wangpan.dto.DownloadFileDto;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.mapper.FileMapper;
@@ -71,5 +72,23 @@ public class RedisComponent {
         String key=Constants.REDIS_USER_FILE_TEMP_SIZE+uid+fid;
         Long currentSize=getFileSizeFromRedis(key);
         redisUtils.setByTime(key,currentSize+fileSize,Constants.REDIS_KEY_EXPIRES_DAY);
+    }
+
+    /**
+     * 保存验证码
+     */
+    public void saveDownloadCode(DownloadFileDto downloadFileDto){
+        String code= downloadFileDto.getDownloadCode();
+        String key=Constants.REDIS_KEY_DOWNLOAD_CODE+code;
+        //保存三分钟
+        redisUtils.setByTime(key,downloadFileDto,Constants.REDIS_KEY_EXPIRES_MINUTE*3L);
+    }
+
+    /**
+     * 获取下载信息
+     */
+    public DownloadFileDto getDownloadMsg(String code){
+        DownloadFileDto downloadFileDto=(DownloadFileDto) redisUtils.get(Constants.REDIS_KEY_DOWNLOAD_CODE+code);
+        return downloadFileDto;
     }
 }

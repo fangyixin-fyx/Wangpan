@@ -50,4 +50,7 @@ public class Constants {
 
     public static final String ROOT_PID="0";
 
+    //下载验证码
+    public static final String REDIS_KEY_DOWNLOAD_CODE="wangpan:download:";
+
 }

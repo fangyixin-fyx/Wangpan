@@ -3,6 +3,7 @@ package com.wangpan.service.impl;
 import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
+import com.wangpan.dto.DownloadFileDto;
 import com.wangpan.dto.UploadResultDto;
 import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserSpaceDto;
@@ -36,9 +37,7 @@ import javax.annotation.Resource;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @Service("fileService")
 public class FileServiceImpl implements FileService {
@@ -656,5 +655,38 @@ public class FileServiceImpl implements FileService {
 			fileInfo.setLastUpdateTime(currDate);
 			fileMapper.updateFileByFid(fileInfo,fid);
 		}
+	}
+
+	public String createDownloadUrl(String fid,String uid){
+		FileInfo fileInfo=fileMapper.selectByFidAndUserId(fid,uid);
+		if(fileInfo==null){
+			throw new BusinessException("验证不通过，生成下载链接失败");
+		}
+		if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+			throw new BusinessException("不支持下载文件夹");
+		}
+		//生成验证随机数
+		String code=StringTool.getRandomNumber(Constants.LENGTH_15);
+
+		DownloadFileDto downloadFileDto=new DownloadFileDto();
+		downloadFileDto.setDownloadCode(code);
+		downloadFileDto.setFileName(fileInfo.getFileName());
+		downloadFileDto.setFilePath(fileInfo.getFilePath());
+		//将验证码存入redis中
+		redisComponent.saveDownloadCode(downloadFileDto);
+		return code;
+	}
+
+	public Map<String,String> download(String code){
+		DownloadFileDto downloadFileDto=redisComponent.getDownloadMsg(code);
+		if(downloadFileDto==null){
+			throw new BusinessException("下载验证码已失效");
+		}
+		String filePath=baseConfig.getProjectFolder()+Constants.FILE_PATH+downloadFileDto.getFilePath();
+		String fileName=downloadFileDto.getFileName();
+		Map<String,String> map=new HashMap<>();
+		map.put("filePath",filePath);
+		map.put("fileName",fileName);
+		return map;
 	}
 }

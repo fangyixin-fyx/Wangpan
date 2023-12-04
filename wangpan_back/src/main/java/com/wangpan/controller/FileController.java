@@ -21,9 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -162,6 +166,31 @@ public class FileController extends ABaseController {
 		FileQuery fileQuery=new FileQuery();
 		fileService.changeFilesPid(fileIDs,pid);
 		return getSuccessResponseVO(null);
+	}
+
+	@PostMapping("/createDownloadUrl/{fileId}")
+	public ResponseVO createDownloadUrl(HttpSession session,@PathVariable("fileId") String fileId){
+		String uid=getUserInfoFromSession(session).getUid();
+		String code=fileService.createDownloadUrl(fileId,uid);
+		return getSuccessResponseVO(code);
+	}
+
+	@GetMapping("/download/{code}")
+	public void download(HttpServletRequest request, HttpServletResponse response,
+							   @PathVariable("code") String code) throws UnsupportedEncodingException {
+		Map<String,String> map=fileService.download(code);
+		String path=map.get("filePath");
+		String fileName=map.get("fileName");
+		response.setContentType("application/x-msdownload; charset=UTF-8");
+		//如果是IE浏览器
+		if(request.getHeader("User-Agent").toLowerCase().indexOf("msie")>0){
+			fileName= URLEncoder.encode(fileName,"UTF-8");
+		}else{
+			fileName=new String(fileName.getBytes("UTF-8"),"ISO8859-1");
+		}
+		response.setHeader("Content-Disposition","attachment;filename=\""+fileName+"\"");
+		//读取文件
+		readFile(response,path);
 	}
 
 }
