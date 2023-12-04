@@ -713,10 +713,6 @@ public class FileServiceImpl implements FileService {
 			if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
 				delSize+=delSubFiles(fileInfo.getFid(),uid);
 			}else{
-				//更新用户使用空间
-				//userSpaceDto=redisComponent.getUsedSpaceDto(uid);
-				//userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()-fileInfo.getFileSize());
-				//redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
 				delSize+=fileInfo.getFileSize();
 			}
 			//将文件移入回收站
@@ -724,11 +720,11 @@ public class FileServiceImpl implements FileService {
 
 		}
 		//更新数据库用户空间
-		UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
-		Long size=userSpaceDto.getUseSpace()-delSize;
-		userMapper.updateUserSpace2(uid,size,userSpaceDto.getTotalSpace());
-		userSpaceDto.setUseSpace(size);
-		redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+		//UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+		//Long size=userSpaceDto.getUseSpace()-delSize;
+		//userMapper.updateUserSpace2(uid,size,userSpaceDto.getTotalSpace());
+		//userSpaceDto.setUseSpace(size);
+		//redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
