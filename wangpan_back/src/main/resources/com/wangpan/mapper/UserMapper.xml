@@ -548,5 +548,18 @@
         </if>
     </update>
 
+    <update id="updateUserSpace2">
+        update user
+        <set>
+            <if test="useSpace!=null">
+                useSpace=#{useSpace},
+            </if>
+            <if test="totalSpace!=null">
+                totalSpace=#{totalSpace},
+            </if>
+        </set>
+        where uid=#{uid}
+    </update>
+
 
 </mapper>

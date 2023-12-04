@@ -114,4 +114,6 @@ public interface FileService {
 	 * 下载文件
 	 */
 	Map<String,String> download(String code);
+
+	void removeFileToRecycleBin(String fids);
 }

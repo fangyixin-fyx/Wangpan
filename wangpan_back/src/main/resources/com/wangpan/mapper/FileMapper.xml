@@ -510,7 +510,7 @@
 
 	<!--根据id查找已使用空间大小-->
 	<select id="getUsedSpaceByUid" resultType="Long">
-		select IFNULL(SUM(fileSize),0) from file where userId=#{userId}
+		select IFNULL(SUM(fileSize),0) from file where userId=#{userId} and delFlag=2
 	</select>
 
 	<update id="updateStatusWithOldStatus">
@@ -633,6 +633,23 @@
 
 	<select id="getFileNameByPid" resultType="String">
 		select fileName from file where filePid=#{pid}
+	</select>
+
+	<update id="delByFid">
+		update file
+		<set>
+			<if test="delFlag!=null">
+				delFlag=#{delFlag},
+			</if>
+			<if test="currTime!=null">
+				lastUpdateTime=#{currTime}
+			</if>
+		</set>
+		where fid=#{fid}
+	</update>
+
+	<select id="selectFileByUidAndPid" resultMap="base_result_map">
+		select * from file where filePid=#{pid} and userId=#{uid}
 	</select>
 
 </mapper>

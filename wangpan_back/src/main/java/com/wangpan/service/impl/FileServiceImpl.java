@@ -28,16 +28,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
+import java.util.List;
 
 @Service("fileService")
 public class FileServiceImpl implements FileService {
@@ -575,6 +578,7 @@ public class FileServiceImpl implements FileService {
 		fileInfo.setFileName(name);
 		fileInfo.setUserId(uid);
 		fileInfo.setFolderType(folderType);
+		fileInfo.setDelFlag(FileDelFlagEnum.USING.getStatus());
 		int count=fileMapper.selectCount(fileInfo);
 		if(count>0){
 			return 1;
@@ -688,5 +692,60 @@ public class FileServiceImpl implements FileService {
 		map.put("filePath",filePath);
 		map.put("fileName",fileName);
 		return map;
+	}
+
+	@Override
+	@Transactional(rollbackFor = Exception.class)
+	public void removeFileToRecycleBin(String fids) {
+		String[] fidArray=fids.split(",");
+		FileInfo fileInfo=null;
+		Date currTime=new Date();
+
+		String uid=null;
+		Long delSize=0L;
+		for(String fid:fidArray){
+			fileInfo=fileMapper.selectByFid(fid);
+			if(fileInfo==null){
+				return;
+			}
+			uid=fileInfo.getUserId();
+			//如果是文件直接移入回收站，文件夹则递归删除子文件
+			if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+				delSize+=delSubFiles(fileInfo.getFid(),uid);
+			}else{
+				//更新用户使用空间
+				//userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+				//userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()-fileInfo.getFileSize());
+				//redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+				delSize+=fileInfo.getFileSize();
+			}
+			//将文件移入回收站
+			fileMapper.delByFid(fid,FileDelFlagEnum.RECYCLE.getStatus(),currTime);
+
+		}
+		//更新数据库用户空间
+		UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+		Long size=userSpaceDto.getUseSpace()-delSize;
+		userMapper.updateUserSpace2(uid,size,userSpaceDto.getTotalSpace());
+		userSpaceDto.setUseSpace(size);
+		redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Long delSubFiles(String pid,String uid){
+		List<FileInfo> subFiles=fileMapper.selectFileByUidAndPid(uid,pid);
+		if(subFiles==null) return 0L;
+		Date currTime=new Date();
+		Long size=0L;
+		for(FileInfo subFile:subFiles){
+			fileMapper.delByFid(subFile.getFid(),FileDelFlagEnum.DEL.getStatus(), currTime);
+			if(subFile.getFolderType().equals(FileFolderTypeEnum.FILE.getType())){
+				size+=subFile.getFileSize();
+			}else{
+				//递归处理
+				size+=delSubFiles(uid,subFile.getFid());
+			}
+		}
+		return size;
 	}
 }

@@ -244,7 +244,6 @@ public class UserServiceImpl implements UserService {
 		Long useSpace=fileMapper.getUsedSpaceByUid(user.getUid());
 		userSpaceDto.setUseSpace(useSpace);
 		redisComponet.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
-		System.out.println("---userService--"+redisComponet.getUsedSpaceDto(user.getUid()));
 		return userDto;
 	}
 

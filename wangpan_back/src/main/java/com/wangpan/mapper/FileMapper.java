@@ -4,6 +4,7 @@ import com.wangpan.entity.po.FileInfo;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 
@@ -41,4 +42,8 @@ public interface FileMapper<T, P> extends BaseMapper{
     void updateFileByFid(@Param("bean") T t, @Param("fid") String fid);
 
 	List<String> getFileNameByPid(@Param("pid") String pid);
+
+	void delByFid(@Param("fid") String fid, @Param("delFlag") Integer delFlag, @Param("currTime")Date currTime);
+
+	List<FileInfo> selectFileByUidAndPid(@Param("uid") String uid,@Param("pid") String pid);
 }

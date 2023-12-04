@@ -5,6 +5,7 @@ import com.wangpan.config.BaseConfig;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UploadResultDto;
 import com.wangpan.dto.UserDto;
+import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.entity.po.FileInfo;
 import com.wangpan.entity.query.FileQuery;
 import com.wangpan.entity.vo.FileVO;
@@ -191,6 +192,13 @@ public class FileController extends ABaseController {
 		response.setHeader("Content-Disposition","attachment;filename=\""+fileName+"\"");
 		//读取文件
 		readFile(response,path);
+	}
+
+	@PostMapping("/delFile")
+	public ResponseVO deleteFiles(@RequestParam("fileIds") String fids){
+		fileService.removeFileToRecycleBin(fids);
+
+		return getSuccessResponseVO(null);
 	}
 
 }

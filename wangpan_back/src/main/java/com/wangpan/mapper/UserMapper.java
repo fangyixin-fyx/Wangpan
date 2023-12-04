@@ -70,4 +70,9 @@ public interface UserMapper<T, P> extends BaseMapper{
 	 */
 	Integer updateUserSpace(@Param("uid") String uid,@Param("useSpace") Long useSpace,@Param("totalSpace") Long totalSpace);
 
+	/**
+	 * 更新空间
+	 */
+	Integer updateUserSpace2(@Param("uid") String uid,@Param("useSpace") Long useSpace,@Param("totalSpace") Long totalSpace);
+
 }
