@@ -8,6 +8,7 @@ import com.wangpan.dto.UploadResultDto;
 import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.entity.po.FileInfo;
+import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.FileQuery;
 import com.wangpan.entity.query.SimplePage;
 import com.wangpan.entity.vo.PaginationResultVO;
@@ -756,26 +757,71 @@ public class FileServiceImpl implements FileService {
 			//检查是否有重名
 			String fileName=file.getFileName();
 			if(checkFileName(file.getFilePid(),uid,fileName,file.getFolderType())>0){
-				file.setFileName(fileName+DateUtil.format(currTime,DateTimePatternEnum.YYYY_MM_DD_HH.getPattern()));
+				String suffix=getFileSuffix(fileName);
+				String pattern=DateTimePatternEnum.YYYY_MM_DD_HH.getPattern();
+				file.setFileName(getFileNameNoSuffix(fileName)+"_"+DateUtil.format(currTime,pattern)+suffix);
 			}
 			fileMapper.updateFileByFid(file,file.getFid());
 		}
 		return;
 	}
 
-	/*
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void recoverySubFiles(String uid,String pid){
-		List<FileInfo> subFiles=fileMapper.selectFileByUidAndPid(uid,pid);
-		if(subFiles==null) return;
+	@Transactional(rollbackFor = Exception.class)
+	public void deleteFileCompletely(String fids,String uid){
+		if(StringTool.isEmpty(fids)) return;
+		String[] fidArray=fids.split(",");
+		FileQuery fileQuery=new FileQuery();
+		fileQuery.setFileIdArray(fidArray);
+		fileQuery.setDelFlag(FileDelFlagEnum.RECYCLE.getStatus());
+		//获取到文件信息
+		List<FileInfo> fileList=fileMapper.selectList(fileQuery);
 
-		for(FileInfo subFile:subFiles){
-			if(subFile.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
-				recoverySubFiles(subFile.getUserId(),subFile.getFid());
+		//获取文件夹的子文件信息
+		List<String> delIds=new ArrayList<>();
+		for(FileInfo fileInfo:fileList){
+			if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+				//获取子文件的所有ID
+				deleteSubFileCompletely(fileInfo.getFid(),uid,delIds);
 			}
-			subFile.set
+		}
+		//数据库操作
+		//删除子文件
+		if(delIds.size()>0){
+			String[] subIds=new String[delIds.size()];
+			fileMapper.deleteCompletelyByFid(delIds.toArray(subIds));
+		}
+		//删除父文件
+		fileMapper.deleteCompletelyByFid(fidArray);
+		//更新用户空间
+		Long currSize=fileMapper.getUsedSpaceByUid(uid);
+		UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+		userMapper.updateUserSpace2(uid,currSize,userSpaceDto.getTotalSpace());
+		userSpaceDto.setUseSpace(currSize);
+		redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+		//删除本地文件
+		/*
+		String basePath=baseConfig.getProjectFolder()+Constants.FILE_PATH;
+		for(FileInfo fileInfo:fileList){
+			File delFile=new File(basePath+fileInfo.getFilePath());
+			try {
+				FileUtils.forceDelete(delFile);
+			} catch (IOException e) {
+				throw new BusinessException("删除本地文件失败",e);
+			}
+		}
+
+		 */
+	}
+
+	public void deleteSubFileCompletely(String pid,String uid,List<String> delIdList){
+		List<FileInfo> subFiles=fileMapper.selectFileByUidAndPid(uid,pid);
+		if(subFiles==null) return ;
+		for(FileInfo subfile:subFiles){
+			delIdList.add(subfile.getFid());
+			if(subfile.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+				deleteSubFileCompletely(subfile.getFid(),subfile.getUserId(),delIdList);
+			}
 		}
 	}
 
-	 */
 }

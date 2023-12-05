@@ -9,6 +9,7 @@ import com.wangpan.entity.vo.ResponseVO;
 import com.wangpan.enums.FileCategoryEnum;
 import com.wangpan.enums.FileDelFlagEnum;
 import com.wangpan.service.FileService;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,6 +52,12 @@ public class RecycleBinController extends ABaseController{
         fileQuery.setFileIdArray(fileArray);
         fileQuery.setDelFlag(FileDelFlagEnum.RECYCLE.getStatus());
         fileService.recoveryFile(fileQuery);
+        return getSuccessResponseVO(null);
+    }
+
+    @PostMapping("/delFile")
+    public ResponseVO delFiles(@RequestParam("fileIds") String fids,HttpSession session){
+        fileService.deleteFileCompletely(fids,getUserInfoFromSession(session).getUid());
         return getSuccessResponseVO(null);
     }
 

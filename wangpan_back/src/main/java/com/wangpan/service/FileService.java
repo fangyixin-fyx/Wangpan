@@ -127,8 +127,8 @@ public interface FileService {
 	void recoveryFile(FileQuery fileQuery);
 
 	/**
-	 * 递归恢复目录文件夹下的子文件
-	 * @param pid
+	 * 彻底删除回收站文件
 	 */
-	//void recoverySubFiles(String pid);
+	void deleteFileCompletely(String fids,String uid);
+
 }

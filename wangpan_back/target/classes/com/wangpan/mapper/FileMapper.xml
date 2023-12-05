@@ -652,4 +652,8 @@
 		select * from file where filePid=#{pid} and userId=#{uid}
 	</select>
 
+	<delete id="deleteCompletelyByFid">
+		delete from file where fid in (<foreach collection="fids" item="fid" separator=",">#{fid}</foreach>)
+	</delete>
+
 </mapper>

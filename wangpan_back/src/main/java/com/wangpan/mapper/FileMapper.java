@@ -43,7 +43,12 @@ public interface FileMapper<T, P> extends BaseMapper{
 
 	List<String> getFileNameByPid(@Param("pid") String pid);
 
+	/**
+	 * 移入回收站，并没有真正删除
+	 */
 	void delByFid(@Param("fid") String fid, @Param("delFlag") Integer delFlag, @Param("currTime")Date currTime);
 
 	List<FileInfo> selectFileByUidAndPid(@Param("uid") String uid,@Param("pid") String pid);
+
+	void deleteCompletelyByFid(@Param("fids") String[] fids);
 }
