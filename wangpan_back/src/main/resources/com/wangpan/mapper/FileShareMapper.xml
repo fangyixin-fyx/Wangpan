@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wangpan.mapper.FileShareMapper">
+
+	<!--实体映射-->
+	<resultMap id="base_result_map" type="FileShare" >
+		<!-- shareId -->
+		<id column="shareId" property="shareId" />
+		<!-- fileId -->
+		<result column="fileId" property="fileId" />
+		<!-- userId -->
+		<result column="userId" property="userId" />
+		<!-- validType -->
+		<result column="validType" property="validType" />
+		<!-- expireTime -->
+		<result column="expireTime" property="expireTime" />
+		<!-- shareTime -->
+		<result column="shareTime" property="shareTime" />
+		<!-- code -->
+		<result column="code" property="code" />
+		<!-- showCount -->
+		<result column="showCount" property="showCount" />
+	</resultMap>
+
+
+	<!--通用查询结果列-->
+	<sql id="base_column_list">
+		shareId, fileId, userId, validType, expireTime, shareTime, code, showCount
+	</sql>
+
+	<!--通用查询条件列-->
+	<sql id="base_query_condition">
+		<if test="query.shareId !=null and query.shareId!=''">
+			and shareId=#{query.shareId}
+		</if>
+		<if test="query.fileId !=null and query.fileId!=''">
+			and fileId=#{query.fileId}
+		</if>
+		<if test="query.userId !=null and query.userId!=''">
+			and userId=#{query.userId}
+		</if>
+		<if test="query.validType !=null">
+			and validType=#{query.validType}
+		</if>
+		<if test="query.expireTime !=null">
+			and expireTime=#{query.expireTime}
+		</if>
+		<if test="query.shareTime !=null">
+			and shareTime=#{query.shareTime}
+		</if>
+		<if test="query.code !=null and query.code!=''">
+			and code=#{query.code}
+		</if>
+		<if test="query.showCount !=null">
+			and showCount=#{query.showCount}
+		</if>
+	</sql>
+
+	<!--扩展的查询条件列-->
+	<sql id="base_query_condition_extend">
+		<if test="query.shareIdFuzzy !=null and query.shareIdFuzzy!=''">
+			 and shareId like concat('%', #{query.shareIdFuzzy}, '%'}
+		</if>
+		<if test="query.fileIdFuzzy !=null and query.fileIdFuzzy!=''">
+			 and fileId like concat('%', #{query.fileIdFuzzy}, '%'}
+		</if>
+		<if test="query.userIdFuzzy !=null and query.userIdFuzzy!=''">
+			 and userId like concat('%', #{query.userIdFuzzy}, '%'}
+		</if>
+		<if test="query.expireTimeStart !=null and query.expireTimeStart!=''">
+			<![CDATA[ and expireTime >= str_to_date(#{query.expireTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test="query.expireTimeEnd !=null and query.expireTimeEnd!=''">
+			<![CDATA[ and expireTime < date_sub(str_to_date(#{query.expireTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
+		</if>
+		<if test="query.shareTimeStart !=null and query.shareTimeStart!=''">
+			<![CDATA[ and shareTime >= str_to_date(#{query.shareTimeStart}, '%Y-%m-%d') ]]>
+		</if>
+		<if test="query.shareTimeEnd !=null and query.shareTimeEnd!=''">
+			<![CDATA[ and shareTime < date_sub(str_to_date(#{query.shareTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
+		</if>
+		<if test="query.codeFuzzy !=null and query.codeFuzzy!=''">
+			 and code like concat('%', #{query.codeFuzzy}, '%'}
+		</if>
+	</sql>
+
+	<!--通用查询条件列-->
+	<sql id="query_condition">
+		<where>
+			<include refid="base_query_condition" />
+			<include refid="base_query_condition_extend" />
+		</where>
+	</sql>
+
+	<!--查询列表-->
+	<select id="selectList" resultMap="base_result_map">
+		SELECT <include refid="base_column_list"/>
+		FROM file_share
+		<include refid="query_condition" />
+		<if test="query.orderBy!=null">	order by ${query.orderBy}	</if>
+		<if test="query.simplePage!=null">	limit #{query.simplePage.start},#{query.simplePage.end}	</if>
+	</select>
+
+	<!--查询数量-->
+	<select id="selectCount" resultType="java.lang.Integer">
+		SELECT count(1) FROM file_share
+		<include refid="query_condition" />
+	</select>
+
+	<!--单条插入-->
+	<insert id="insert" parameterType="FileShare">
+		INSERT INTO file_share
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.shareId!=null">
+				shareId,
+			</if>
+			<if test="bean.fileId!=null">
+				fileId,
+			</if>
+			<if test="bean.userId!=null">
+				userId,
+			</if>
+			<if test="bean.validType!=null">
+				validType,
+			</if>
+			<if test="bean.expireTime!=null">
+				expireTime,
+			</if>
+			<if test="bean.shareTime!=null">
+				shareTime,
+			</if>
+			<if test="bean.code!=null">
+				code,
+			</if>
+			<if test="bean.showCount!=null">
+				showCount,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.shareId!=null">
+				#{ bean.shareId },
+			</if>
+			<if test="bean.fileId!=null">
+				#{ bean.fileId },
+			</if>
+			<if test="bean.userId!=null">
+				#{ bean.userId },
+			</if>
+			<if test="bean.validType!=null">
+				#{ bean.validType },
+			</if>
+			<if test="bean.expireTime!=null">
+				#{ bean.expireTime },
+			</if>
+			<if test="bean.shareTime!=null">
+				#{ bean.shareTime },
+			</if>
+			<if test="bean.code!=null">
+				#{ bean.code },
+			</if>
+			<if test="bean.showCount!=null">
+				#{ bean.showCount },
+			</if>
+		</trim>
+	</insert>
+
+	<!--插入或者更新-->
+	<insert id="insertOrUpdate" parameterType="FileShare">
+		INSERT INTO file_share
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="bean.shareId!=null">
+				shareId,
+			</if>
+			<if test="bean.fileId!=null">
+				fileId,
+			</if>
+			<if test="bean.userId!=null">
+				userId,
+			</if>
+			<if test="bean.validType!=null">
+				validType,
+			</if>
+			<if test="bean.expireTime!=null">
+				expireTime,
+			</if>
+			<if test="bean.shareTime!=null">
+				shareTime,
+			</if>
+			<if test="bean.code!=null">
+				code,
+			</if>
+			<if test="bean.showCount!=null">
+				showCount,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="bean.shareId!=null">
+				#{ bean.shareId },
+			</if>
+			<if test="bean.fileId!=null">
+				#{ bean.fileId },
+			</if>
+			<if test="bean.userId!=null">
+				#{ bean.userId },
+			</if>
+			<if test="bean.validType!=null">
+				#{ bean.validType },
+			</if>
+			<if test="bean.expireTime!=null">
+				#{ bean.expireTime },
+			</if>
+			<if test="bean.shareTime!=null">
+				#{ bean.shareTime },
+			</if>
+			<if test="bean.code!=null">
+				#{ bean.code },
+			</if>
+			<if test="bean.showCount!=null">
+				#{ bean.showCount },
+			</if>
+		</trim>
+		on DUPLICATE key update
+
+		<trim prefix="" suffix="" suffixOverrides=",">
+			<if test="bean.fileId!=null">
+				fileId =VALUES ( fileId ),
+			</if>
+			<if test="bean.userId!=null">
+				userId =VALUES ( userId ),
+			</if>
+			<if test="bean.validType!=null">
+				validType =VALUES ( validType ),
+			</if>
+			<if test="bean.expireTime!=null">
+				expireTime =VALUES ( expireTime ),
+			</if>
+			<if test="bean.shareTime!=null">
+				shareTime =VALUES ( shareTime ),
+			</if>
+			<if test="bean.code!=null">
+				code =VALUES ( code ),
+			</if>
+			<if test="bean.showCount!=null">
+				showCount =VALUES ( showCount ),
+			</if>
+		</trim>
+	</insert>
+
+	<!--批量插入-->
+	<insert id="insertBatch" parameterType="FileShare">
+		INSERT INTO file_share(shareId,fileId,userId,validType,expireTime,shareTime,code,showCount) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.shareId},#{item.fileId},#{item.userId},#{item.validType},#{item.expireTime},#{item.shareTime},#{item.code},#{item.showCount})
+		</foreach>
+	</insert>
+
+	<!--批量更新插入-->
+	<insert id="insertOrUpdateBatch" parameterType="FileShare">
+		INSERT INTO file_share(shareId,fileId,userId,validType,expireTime,shareTime,code,showCount) values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.shareId},#{item.fileId},#{item.userId},#{item.validType},#{item.expireTime},#{item.shareTime},#{item.code},#{item.showCount})
+		</foreach>
+		on DUPLICATE key update
+		shareId =VALUES(shareId),fileId =VALUES(fileId),userId =VALUES(userId),validType =VALUES(validType),expireTime =VALUES(expireTime),shareTime =VALUES(shareTime),code =VALUES(code),showCount =VALUES(showCount)
+	</insert>
+
+	<!--根据ShareId查询-->
+	<select id="selectByShareId" resultMap="base_result_map">
+		select <include refid="base_column_list"/>
+		from file_share where shareId=#{shareId}
+	</select>
+
+	<!--根据ShareId更新-->
+	<update id="updateByShareId" parameterType="FileShare">
+		update file_share
+		<set>
+			<if test="bean.shareId!=null">
+				shareId=#{ bean.shareId },
+			</if>
+			<if test="bean.fileId!=null">
+				fileId=#{ bean.fileId },
+			</if>
+			<if test="bean.userId!=null">
+				userId=#{ bean.userId },
+			</if>
+			<if test="bean.validType!=null">
+				validType=#{ bean.validType },
+			</if>
+			<if test="bean.expireTime!=null">
+				expireTime=#{ bean.expireTime },
+			</if>
+			<if test="bean.shareTime!=null">
+				shareTime=#{ bean.shareTime },
+			</if>
+			<if test="bean.code!=null">
+				code=#{ bean.code },
+			</if>
+			<if test="bean.showCount!=null">
+				showCount=#{ bean.showCount },
+			</if>
+		</set>
+		where shareId=#{shareId}
+	</update>
+
+	<!--根据ShareId删除-->
+	<delete id="deleteByShareId">
+		delete from file_share where shareId=#{shareId}
+	</delete>
+
+	<delete id="deleteBatchByShareId">
+		delete from file_share
+		       where shareId in (<foreach collection="shareIdArray" separator="," item="shareId">#{shareId}</foreach> )
+	</delete>
+
+	<select id="selectListByUid" resultType="com.wangpan.dto.FileShareDto">
+		SELECT s.shareId, s.fileId, s.userId, s.validType, s.expireTime, s.shareTime, s.code, s.showCount,
+		       f.fileName,f.fileCover,f.fileCategory,f.fileType,f.folderType
+		FROM file_share s left join file f on s.fileId=f.fid
+		where s.userId=#{query.userId}
+		<if test="query.orderBy!=null">	order by ${query.orderBy}	</if>
+		<if test="query.simplePage!=null">	limit #{query.simplePage.start},#{query.simplePage.end}	</if>
+	</select>
+
+</mapper>

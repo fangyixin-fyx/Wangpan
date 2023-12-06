@@ -1,4 +1,5 @@
 package com.wangpan.mapper;
+import com.wangpan.entity.po.FileShare;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -33,5 +34,7 @@ public interface BaseMapper<T, P>{
      * 根据集合查询数量
      */
      Integer selectCount(@Param("query") P p);
+
+
 
 }

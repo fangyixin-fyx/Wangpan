@@ -53,4 +53,6 @@ public class Constants {
     //下载验证码
     public static final String REDIS_KEY_DOWNLOAD_CODE="wangpan:download:";
 
+    public static final Integer SHAREID_LENGTH=20;
+
 }
