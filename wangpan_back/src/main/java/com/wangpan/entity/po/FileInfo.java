@@ -11,6 +11,7 @@ import java.util.Date;
 @Data
 public class FileInfo implements Serializable{
 
+	@JsonProperty("fileId")
 	private String fid;
 	private String userId;
 	// 文件MD5值
@@ -47,6 +48,9 @@ public class FileInfo implements Serializable{
 	private Date recoveryTime;
 	// 0：删除   1：回收站   2：正常
 	private Integer delFlag;
+
+	//管理员查看文件使用者
+	private String nickName;
 
 	@Override
 	public String toString(){

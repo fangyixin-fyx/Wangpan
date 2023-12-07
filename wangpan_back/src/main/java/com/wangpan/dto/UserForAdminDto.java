@@ -30,8 +30,8 @@ public class UserForAdminDto {
     @JsonProperty("status")
     private Integer state;
 
-    private Integer useSpace;
+    private Long useSpace;
 
-    private Integer totalSpace;
+    private Long totalSpace;
 
 }

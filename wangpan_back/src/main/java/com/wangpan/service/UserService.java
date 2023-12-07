@@ -118,4 +118,16 @@ public interface UserService {
 	 */
 	PaginationResultVO<UserForAdminDto> adminGetUserListByPage(UserQuery query);
 
+	/**
+	 * 管理员更新用户可用空间
+	 */
+	int updateUserSpace(String userId,String changeSpace,String currUser);
+
+	/**
+	 * 管理员修改用户账号状态
+	 * @param userId：被修改状态的用户
+	 * @param currUid:当前登录用户
+	 * @return
+	 */
+	int updateStatusByAdmin(String userId, String status, String currUid);
 }

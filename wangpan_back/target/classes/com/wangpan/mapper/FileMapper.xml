@@ -656,4 +656,17 @@
 		delete from file where fid in (<foreach collection="fids" item="fid" separator=",">#{fid}</foreach>)
 	</delete>
 
+	<select id="selectListByAdmin" resultType="FileInfo">
+		select f.fid,f.userId, f.fileName,f.lastUpdateTime,f.fileSize,f.fileCover,f.filePid,f.fileMd5,f.filePath,
+		       f.fileCategory,f.folderType,f.fileType,
+		       u.username nickName
+		from file f left join user u on f.userId=u.uid
+		<where>
+			<if test="bean.fileNameFuzzy !=null and bean.fileNameFuzzy!=''">
+				and fileName like concat('%', #{bean.fileNameFuzzy}, '%'}
+			</if>
+		</where>
+		order by #{bean.orderBy}
+	</select>
+
 </mapper>

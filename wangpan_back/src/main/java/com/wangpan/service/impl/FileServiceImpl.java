@@ -824,4 +824,14 @@ public class FileServiceImpl implements FileService {
 		}
 	}
 
+	public PaginationResultVO<FileInfo> adminFindListByPage(FileQuery query){
+		int count=Math.toIntExact(this.findCountByParam(query));
+		int pageSize= query.getPageSize()==null ? PageSize.SIZE15.getSize() : query.getPageSize();
+		SimplePage page=new SimplePage(query.getPageNo(), count, pageSize);
+		query.setSimplePage(page);
+		List<FileInfo> list=fileMapper.selectListByAdmin(query);
+		PaginationResultVO<FileInfo> result=new PaginationResultVO(count,page.getPageSize(),page.getPageNo(),page.getPageTotal(),list);
+		return result;
+	}
+
 }

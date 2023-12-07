@@ -51,4 +51,6 @@ public interface FileMapper<T, P> extends BaseMapper{
 	List<FileInfo> selectFileByUidAndPid(@Param("uid") String uid,@Param("pid") String pid);
 
 	void deleteCompletelyByFid(@Param("fids") String[] fids);
+
+    List<FileInfo> selectListByAdmin(@Param("bean") P query);
 }

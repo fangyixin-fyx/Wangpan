@@ -131,4 +131,8 @@ public interface FileService {
 	 */
 	void deleteFileCompletely(String fids,String uid);
 
+	/**
+	 * 管理员查询文件
+	 */
+	PaginationResultVO<FileInfo> adminFindListByPage(FileQuery fileQuery);
 }

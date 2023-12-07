@@ -55,4 +55,6 @@ public class FileQuery extends BaseQuery {
 	private String[] excludeFileIdArray;
 
 
+
+
 }

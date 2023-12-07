@@ -271,4 +271,34 @@ public class UserServiceImpl implements UserService {
 		return result;
 	}
 
+	public int updateUserSpace(String userId,String changeSpace,String currUser){
+		if(changeSpace==null) return 0;
+		Long totalSpace=Long.valueOf(changeSpace);
+		Long space=totalSpace*Constants.MB;
+		User user=userMapper.selectByUid(userId);
+		if(user==null) throw new BusinessException("用户不存在");
+		if(space<user.getUseSpace()){
+			throw new BusinessException("修改失败，使用空间大于修改空间！");
+		}
+		int result=userMapper.updateUserSpace2(userId,null, space);
+		if(result>0&&userId.equals(currUser)){
+			UserSpaceDto userSpaceDto=new UserSpaceDto();
+			userSpaceDto.setUseSpace(user.getUseSpace());
+			userSpaceDto.setTotalSpace(space);
+			redisComponet.saveUserSpaceUsed(userId,userSpaceDto);
+		}
+		return result;
+	}
+
+	public int updateStatusByAdmin(String userId, String status, String currUid){
+		User user=new User();
+		user.setState(Integer.valueOf(status));
+		int result=userMapper.updateByUid(user,userId);
+		if(result>0&&userId.equals(currUid) && status.equals(String.valueOf(UserStateEnum.DISABLE.getState()))){
+			return -1;
+		}else{
+			return result;
+		}
+	}
+
 }
