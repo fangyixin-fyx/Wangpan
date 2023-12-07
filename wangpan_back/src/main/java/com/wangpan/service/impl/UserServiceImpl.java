@@ -5,6 +5,7 @@ import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserDto;
+import com.wangpan.dto.UserForAdminDto;
 import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.SimplePage;
@@ -254,6 +255,20 @@ public class UserServiceImpl implements UserService {
 		emailCodeService.checkCode(email,emailCode);
 		user.setPassword(StringTool.encodeByMD5(password));
 		userMapper.updateByEmail(user,email);
+	}
+
+	/**
+	 * 管理员查看用户信息
+	 */
+	public PaginationResultVO<UserForAdminDto> adminGetUserListByPage(UserQuery query){
+		int count=Math.toIntExact(this.findCountByParam(query));
+		int pageSize= query.getPageSize()==null ? PageSize.SIZE15.getSize() : query.getPageSize();
+		SimplePage page=new SimplePage(query.getPageNo(), count, pageSize);
+		query.setSimplePage(page);
+		//List<User> list=this.findListByParam(query);
+		List<UserForAdminDto> list=userMapper.adminSelectList(query);
+		PaginationResultVO<UserForAdminDto> result=new PaginationResultVO(count,page.getPageSize(),page.getPageNo(),page.getPageTotal(),list);
+		return result;
 	}
 
 }

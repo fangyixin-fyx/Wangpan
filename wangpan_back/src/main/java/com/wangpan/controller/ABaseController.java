@@ -33,6 +33,15 @@ public class ABaseController {
         return responseVO;
     }
 
+    protected <T> ResponseVO getFailResponseVO(T t){
+        ResponseVO<T> responseVO=new ResponseVO<>();
+        responseVO.setStatus(STATUE_ERROR);
+        responseVO.setCode(ResponseCodeEnum.CODE_500.getCode());
+        responseVO.setInfo(ResponseCodeEnum.CODE_500.getMsg());
+        responseVO.setData(t);
+        return responseVO;
+    }
+
     //读文件流
     protected void readFile(HttpServletResponse response,String filePath){
         if(!StringTool.pathIsOk(filePath))  return;

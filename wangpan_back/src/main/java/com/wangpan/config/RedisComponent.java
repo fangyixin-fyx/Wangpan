@@ -34,6 +34,13 @@ public class RedisComponent {
         return sysSettingsDto;
     }
 
+    public Boolean setSysSettingDto(SysSettingsDto sysSettingsDto){
+        if(sysSettingsDto==null) {
+            sysSettingsDto=new SysSettingsDto(); //有初始值
+        }
+        return redisUtils.set(Constants.REDIS_KEY_SYS_SETTINGS,sysSettingsDto);
+    }
+
     //将用户空间使用情况存入redis中
     public void saveUserSpaceUsed(String uid, UserSpaceDto userSpaceDto){
         redisUtils.setByTime(Constants.REDIS_KEY_USERSPACE_USED+uid,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);

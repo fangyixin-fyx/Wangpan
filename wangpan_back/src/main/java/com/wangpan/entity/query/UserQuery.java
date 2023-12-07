@@ -1,5 +1,7 @@
 package com.wangpan.entity.query;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Date;
 
 public class UserQuery extends BaseQuery {
@@ -8,6 +10,7 @@ public class UserQuery extends BaseQuery {
 	private String uidFuzzy;
 	// 用户名
 	private String username;
+	@JsonProperty("nickNameFuzzy")
 	private String usernameFuzzy;
 	// 密码(使用MD5)
 	private String password;
@@ -29,6 +32,7 @@ public class UserQuery extends BaseQuery {
 	private String lastLoginTimeStart;
 	private String lastLoginTimeEnd;
 	// 账号状态 0：禁用   1：可用
+	@JsonProperty("status")
 	private Integer state;
 	// 使用空间
 	private Long useSpace;

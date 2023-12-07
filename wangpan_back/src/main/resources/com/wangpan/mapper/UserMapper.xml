@@ -561,5 +561,9 @@
         where uid=#{uid}
     </update>
 
+    <select id="adminSelectList" resultType="com.wangpan.dto.UserForAdminDto">
+        select uid,username,email,qqIcon,registrationTime,lastLoginTime,state,useSpace,totalSpace from user
+        order by registrationTime desc
+    </select>
 
 </mapper>

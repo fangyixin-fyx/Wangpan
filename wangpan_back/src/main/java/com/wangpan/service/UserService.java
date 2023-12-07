@@ -1,6 +1,7 @@
 package com.wangpan.service;
 
 import com.wangpan.dto.UserDto;
+import com.wangpan.dto.UserForAdminDto;
 import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.UserQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
@@ -111,5 +112,10 @@ public interface UserService {
 	 * @param emailCode：邮箱验证码
 	 */
 	void resetPwd(String email,String password,String emailCode);
+
+	/**
+	 * 管理员查看用户信息
+	 */
+	PaginationResultVO<UserForAdminDto> adminGetUserListByPage(UserQuery query);
 
 }

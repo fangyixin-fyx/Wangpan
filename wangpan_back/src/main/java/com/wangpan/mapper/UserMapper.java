@@ -1,7 +1,11 @@
 package com.wangpan.mapper;
 
+import com.wangpan.dto.UserDto;
+import com.wangpan.dto.UserForAdminDto;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @Repository
 public interface UserMapper<T, P> extends BaseMapper{
@@ -75,4 +79,5 @@ public interface UserMapper<T, P> extends BaseMapper{
 	 */
 	Integer updateUserSpace2(@Param("uid") String uid,@Param("useSpace") Long useSpace,@Param("totalSpace") Long totalSpace);
 
+    List<UserForAdminDto> adminSelectList(P query);
 }
