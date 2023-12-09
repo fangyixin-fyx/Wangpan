@@ -69,7 +69,6 @@ public class FileController extends ABaseController {
 	 * 通过图片名获取图片，显示缩略图或封面
 	 */
 	@GetMapping("getImage/{imageName}")
-	@GlobalInterceptor(checkParam = true)
 	public void getImage(HttpServletResponse response, @PathVariable("imageName") String imageName){
 		if(StringTool.isEmpty(imageName)){
 			return;

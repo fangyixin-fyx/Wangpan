@@ -1,15 +1,20 @@
 package com.wangpan.mapper;
 
 import com.wangpan.dto.FileShareDto;
+import com.wangpan.dto.WebShareInfoDto;
+import com.wangpan.entity.po.FileInfo;
+import com.wangpan.entity.po.FileShare;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface FileShareMapper<T, P> extends BaseMapper{
 	/** 
 	 * 根据 ShareId 查询
 	 */
-	T selectByShareId(@Param("shareId") String shareId) ;
+	FileShare selectByShareId(@Param("shareId") String shareId) ;
 
 	/** 
 	 * 根据 ShareId 更新
@@ -31,4 +36,13 @@ public interface FileShareMapper<T, P> extends BaseMapper{
 	 * 查询集合返回DTO
 	 */
 	List<FileShareDto> selectListByUid(@Param("query") P p);
+
+	/**
+	 * 外部获取分享文件数据
+	 */
+	WebShareInfoDto getWebShareInfo(@Param("shareId") String shareId);
+
+	void updateShowCountByShareId(@Param("shareId") String shareId);
+
+
 }

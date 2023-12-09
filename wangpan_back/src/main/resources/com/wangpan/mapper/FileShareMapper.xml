@@ -323,4 +323,19 @@
 		<if test="query.simplePage!=null">	limit #{query.simplePage.start},#{query.simplePage.end}	</if>
 	</select>
 
+	<select id="getWebShareInfo" resultType="com.wangpan.dto.WebShareInfoDto">
+		select fs.shareTime,fs.expireTime,fs.fileId,fs.userId,
+		       f.fileName,u.username nickName,u.qqIcon avatar
+		from file_share fs left join file f on fs.fileId=f.fid
+		left join user u on fs.userId=u.uid
+		where fs.shareId=#{shareId} and f.delFlag=2
+	</select>
+
+	<update id="updateShowCountByShareId">
+		update file_share set showCount=showCount+1
+		where shareId=#{shareId}
+	</update>
+
+
+
 </mapper>

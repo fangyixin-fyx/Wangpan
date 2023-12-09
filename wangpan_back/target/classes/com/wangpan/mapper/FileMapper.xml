@@ -669,4 +669,23 @@
 		order by #{bean.orderBy}
 	</select>
 
+	<select id="selectForShareFile" resultType="FileInfo">
+		select * from file where fid=#{fileId} and filePid=#{filePid}
+		order by #{orderBy}
+	</select>
+
+	<select id="selectShareSubFile" resultType="FileInfo">
+		select * from file
+		where filePid=#{filePid} and delFlag=2
+		order by lastUpdateTime desc
+	</select>
+
+	<select id="selectFileList" resultType="FileInfo">
+		select f.fid,f.filePid,f.fileSize,f.fileName,f.fileCover,f.lastUpdateTime,f.folderType,f.fileCategory,f.fileType,
+			   f.status
+		from file f left join file_share s on f.fid=s.fileId
+		where s.shareId=#{shareId}
+		order by f.lastUpdateTime desc
+	</select>
+
 </mapper>

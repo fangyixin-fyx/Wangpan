@@ -7,6 +7,8 @@ public enum ResponseCodeEnum {
     CODE_601(601,"信息已存在"),
     CODE_500(500,"服务器返回错误"),
     CODE_901(901,"登陆超时，请重新登录"),
+    CODE_902(902,"分享链接不存在或已失效"),
+    CODE_903(903,"分享验证失效，请重新验证"),
     CODE_FILE(501,"空间不足，上传文件失败");
 
     private Integer code;

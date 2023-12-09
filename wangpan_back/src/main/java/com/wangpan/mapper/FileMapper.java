@@ -1,6 +1,7 @@
 package com.wangpan.mapper;
 
 import com.wangpan.entity.po.FileInfo;
+import com.wangpan.entity.query.FileQuery;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -53,4 +54,13 @@ public interface FileMapper<T, P> extends BaseMapper{
 	void deleteCompletelyByFid(@Param("fids") String[] fids);
 
     List<FileInfo> selectListByAdmin(@Param("bean") P query);
+
+	List<FileInfo> selectForShareFile(@Param("fileId")String fileId,@Param("filePid")String filePid,@Param("orderBy") String orderBy);
+
+	List<FileInfo> selectShareSubFile(@Param("filePid") String filePid);
+
+	/**
+	 * 获取根目录分享文件信息
+	 */
+	List<FileInfo> selectFileList(@Param("shareId") String shareId);
 }

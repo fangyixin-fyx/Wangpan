@@ -28,7 +28,7 @@ import javax.mail.internet.MimeMessage;
 import java.util.Date;
 import java.util.List;
 
-@Service("EmailCodeService")
+@Service("emailCodeService")
 public class EmailCodeServiceImpl implements EmailCodeService {
 	private static final Logger logger = LoggerFactory.getLogger(EmailCodeServiceImpl.class);
 	@Autowired

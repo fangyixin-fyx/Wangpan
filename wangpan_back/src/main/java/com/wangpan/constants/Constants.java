@@ -55,4 +55,5 @@ public class Constants {
 
     public static final Integer SHAREID_LENGTH=20;
 
+    public static final String SESSION_SHARE = "share_file_";
 }
