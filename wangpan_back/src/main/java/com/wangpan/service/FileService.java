@@ -131,8 +131,12 @@ public interface FileService {
 	 */
 	void deleteFileCompletely(String fids,String uid);
 
+	void deleteSubFileCompletely(String pid,String uid,List<String> delIdList);
+
 	/**
 	 * 管理员查询文件
 	 */
 	PaginationResultVO<FileInfo> adminFindListByPage(FileQuery fileQuery);
+
+	int checkFileName(String filePid,String uid,String name,Integer folderType);
 }

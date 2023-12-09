@@ -2,6 +2,7 @@ package com.wangpan.entity.po;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.wangpan.utils.StringTool;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 

@@ -7,6 +7,7 @@ import com.wangpan.entity.po.FileShare;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 @Mapper
@@ -45,4 +46,7 @@ public interface FileShareMapper<T, P> extends BaseMapper{
 	void updateShowCountByShareId(@Param("shareId") String shareId);
 
 
+    List<FileShare> selectExpiredFile(@Param("currTime") Date currTime);
+
+	void cleanByShareId(@Param("shareId") String shareId);
 }

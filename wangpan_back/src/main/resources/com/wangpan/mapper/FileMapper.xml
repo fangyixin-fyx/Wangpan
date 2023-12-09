@@ -168,7 +168,7 @@
 	</select>
 
 	<!--单条插入-->
-	<insert id="insert" parameterType="com.wangpan.entity.po.FileInfo">
+	<insert id="insert" parameterType="FileInfo">
 		INSERT INTO file
 		<trim prefix="(" suffix=")" suffixOverrides=",">
 			<if test="bean.fid!=null">
@@ -687,5 +687,13 @@
 		where s.shareId=#{shareId}
 		order by f.lastUpdateTime desc
 	</select>
+
+	<select id="selectExpiredFile" resultType="FileInfo">
+		select * from file where expireTime &lt; DATE_ADD(CURDATE(),INTERVAL 30 DAY);
+	</select>
+
+	<delete id="cleanByFid">
+		delete from file where fid=#{fid}
+	</delete>
 
 </mapper>

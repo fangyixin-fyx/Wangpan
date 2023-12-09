@@ -35,4 +35,13 @@ public interface WebShareService {
      * @return 存储上一级的文件数据
      */
     List<FileVO> getFolderInfo(String path, String shareUserId);
+
+    /**
+     * 文件转存
+     * @param uid：当前登录用户
+     * @param shareUserId：文件分享者
+     * @param shareFileIds：转存文件ID
+     * @param myFolderId：，目标转存目录地址
+     */
+    void save2MyAccount(String uid, String shareUserId, String shareFileIds, String myFolderId);
 }

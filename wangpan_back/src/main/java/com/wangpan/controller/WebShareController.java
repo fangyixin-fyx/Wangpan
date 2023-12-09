@@ -10,6 +10,7 @@ import com.wangpan.entity.vo.FileVO;
 import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.entity.vo.ResponseVO;
 import com.wangpan.enums.ResponseCodeEnum;
+import com.wangpan.enums.UploadStatusEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.service.FileService;
 import com.wangpan.service.FileShareService;
@@ -17,13 +18,16 @@ import com.wangpan.service.UserService;
 import com.wangpan.service.WebShareService;
 import com.wangpan.utils.StringTool;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 外部分享
@@ -35,6 +39,8 @@ import java.util.List;
 public class WebShareController extends ABaseController{
     @Autowired
     private WebShareService webShareService;
+    @Autowired
+    private FileService fileService;
 
     @PostMapping("/getShareInfo")
     public ResponseVO getShareInfo(String shareId){
@@ -89,6 +95,50 @@ public class WebShareController extends ABaseController{
         ShareSessionDto shareSessionDto=(ShareSessionDto) session.getAttribute(Constants.SESSION_SHARE+shareId);
         List<FileVO> list= webShareService.getFolderInfo(path,shareSessionDto.getShareUserId());
         return getSuccessResponseVO(list);
+    }
+
+    @PostMapping("/getFile/{shareId}/{fileId}")
+    public ResponseVO getFile(HttpSession session, HttpServletResponse response,
+                              @PathVariable("shareId") String shareId,
+                              @PathVariable("fileId") String fileId){
+        ShareSessionDto shareSessionDto=(ShareSessionDto) session.getAttribute(Constants.SESSION_SHARE+shareId);
+        String filePath=fileService.getFile(fileId,shareSessionDto.getShareUserId());
+        readFile(response,filePath);
+        return getSuccessResponseVO(null);
+    }
+
+    @PostMapping("/createDownloadUrl/{shareId}/{fileId}")
+    public ResponseVO createDownloadUrl(HttpSession session,
+                                        @PathVariable("shareId") String shareId,@PathVariable("fileId") String fileId){
+        ShareSessionDto shareSessionDto=(ShareSessionDto) session.getAttribute(Constants.SESSION_SHARE+shareId);
+        String code=fileService.createDownloadUrl(fileId,shareSessionDto.getShareUserId());
+        return getSuccessResponseVO(code);
+    }
+
+    @GetMapping("/download/{code}")
+    public void downloadFile(@PathVariable("code") String code, HttpServletRequest request,
+                                   HttpServletResponse response) throws UnsupportedEncodingException {
+        Map<String,String> map=fileService.download(code);
+        String path=map.get("filePath");
+        String fileName=map.get("fileName");
+        response.setContentType("application/x-msdownload; charset=UTF-8");
+        //如果是IE浏览器
+        if(request.getHeader("User-Agent").toLowerCase().indexOf("msie")>0){
+            fileName= URLEncoder.encode(fileName,"UTF-8");
+        }else{
+            fileName=new String(fileName.getBytes("UTF-8"),"ISO8859-1");
+        }
+        response.setHeader("Content-Disposition","attachment;filename=\""+fileName+"\"");
+        //读取文件
+        readFile(response,path);
+    }
+
+    @PostMapping("/saveShare")
+    public ResponseVO saveShare2MyAccount(HttpSession session,String shareId,String shareFileIds,String myFolderId){
+        ShareSessionDto shareSessionDto=(ShareSessionDto) session.getAttribute(Constants.SESSION_SHARE+shareId);
+        UserDto userDto=getUserInfoFromSession(session);
+        webShareService.save2MyAccount(userDto.getUid(),shareSessionDto.getShareUserId(),shareFileIds,myFolderId);
+        return getSuccessResponseVO(UploadStatusEnum.UPLOADED);
     }
 
 }

@@ -234,7 +234,7 @@ public class FileServiceImpl implements FileService {
 			fileInfo.setUserId(uid);
 			fileInfo.setFileMd5(fileMd5);
 			fileInfo.setFileName(fileName);
-			fileInfo.setFilePath(month+"/"+realFileName);
+			fileInfo.setFilePath(uid+"/"+month+"/"+realFileName);
 			fileInfo.setFilePid(filePid);
 			fileInfo.setCreateTime(currentDate);
 			fileInfo.setLastUpdateTime(currentDate);
@@ -362,7 +362,7 @@ public class FileServiceImpl implements FileService {
 			String month=DateUtil.format(fileInfo.getCreateTime(),DateTimePatternEnum.YYYY_MM.getPattern());
 
 			//创建目标目录
-			String targetFolderBasePath=baseConfig.getProjectFolder()+Constants.FILE_PATH;
+			String targetFolderBasePath=baseConfig.getProjectFolder()+Constants.FILE_PATH+userDto.getUid();
 			File targetFolder=new File(targetFolderBasePath+"/"+month);
 			if(!targetFolder.exists()){
 				targetFolder.mkdirs();
@@ -572,7 +572,7 @@ public class FileServiceImpl implements FileService {
 		return fileInfo;
 	}
 
-	private int checkFileName(String filePid,String uid,String name,Integer folderType){
+	public int checkFileName(String filePid,String uid,String name,Integer folderType){
 		FileQuery fileInfo=new FileQuery();
 		fileInfo.setFilePid(filePid);
 		fileInfo.setFileName(name);
@@ -664,7 +664,7 @@ public class FileServiceImpl implements FileService {
 	public String createDownloadUrl(String fid,String uid){
 		FileInfo fileInfo=fileMapper.selectByFidAndUserId(fid,uid);
 		if(fileInfo==null){
-			throw new BusinessException("验证不通过，生成下载链接失败");
+			throw new BusinessException("文件不存在，生成下载链接失败");
 		}
 		if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
 			throw new BusinessException("不支持下载文件夹");

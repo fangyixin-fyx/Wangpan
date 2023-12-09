@@ -336,6 +336,12 @@
 		where shareId=#{shareId}
 	</update>
 
+	<select id="selectExpiredFile" resultType="FileShare">
+		select * from file_share where expireTime &lt; #{currTime}
+	</select>
 
+	<delete id="cleanByShareId">
+		delete from file_share where shareId=#{shareId}
+	</delete>
 
 </mapper>

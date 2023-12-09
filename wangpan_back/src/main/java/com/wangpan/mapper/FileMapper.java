@@ -63,4 +63,11 @@ public interface FileMapper<T, P> extends BaseMapper{
 	 * 获取根目录分享文件信息
 	 */
 	List<FileInfo> selectFileList(@Param("shareId") String shareId);
+
+	/**
+	 * 查找过期文件
+	 */
+	List<FileInfo> selectExpiredFile(@Param("currTime") Date currTime);
+
+	void cleanByFid(@Param("fid") String fid);
 }

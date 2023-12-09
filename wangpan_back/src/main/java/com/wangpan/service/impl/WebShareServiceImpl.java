@@ -1,25 +1,36 @@
 package com.wangpan.service.impl;
 
+import com.wangpan.config.BaseConfig;
+import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.ShareSessionDto;
+import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.dto.WebShareInfoDto;
 import com.wangpan.entity.po.FileInfo;
 import com.wangpan.entity.po.FileShare;
-import com.wangpan.entity.query.FileQuery;
+import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.SimplePage;
 import com.wangpan.entity.vo.FileVO;
 import com.wangpan.entity.vo.PaginationResultVO;
+import com.wangpan.enums.DateTimePatternEnum;
+import com.wangpan.enums.FileFolderTypeEnum;
 import com.wangpan.enums.PageSize;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.FileShareMapper;
+import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.FileService;
 import com.wangpan.service.WebShareService;
 import com.wangpan.utils.CopyUtil;
+import com.wangpan.utils.DateUtil;
 import com.wangpan.utils.StringTool;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -35,6 +46,12 @@ public class WebShareServiceImpl implements WebShareService {
     private FileMapper fileMapper;
     @Autowired
     private FileService fileService;
+    @Autowired
+    private BaseConfig baseConfig;
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private RedisComponent redisComponent;
 
     public WebShareInfoDto getShareInfoCommon(String shareId){
         WebShareInfoDto fileShare=fileShareMapper.getWebShareInfo(shareId);
@@ -89,5 +106,108 @@ public class WebShareServiceImpl implements WebShareService {
         List<FileInfo> list=fileService.getFolderInfo(path,shareUserId);
         List<FileVO> result=CopyUtil.copyList(list,FileVO.class);
         return result;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void save2MyAccount(String uid, String shareUserId, String shareFileIds, String myFolderId){
+        if(uid.equals(shareUserId)){
+            throw new BusinessException("自己分享的文件无法保存至自己的网盘");
+        }
+        String[] saveFids=shareFileIds.split(",");
+
+        Date currTime=new Date();
+
+        //遍历要转存的文件
+        for(String fid:saveFids){
+            //开始转存
+            FileInfo fileInfo=fileMapper.selectByFid(fid);
+            String newFid=StringTool.getRandomNumber(Constants.LENGTH_10);
+            UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+            //判断空间是否充足
+            if(fileInfo.getFileSize()!=null&&fileInfo.getFileSize()+userSpaceDto.getUseSpace()>userSpaceDto.getTotalSpace()){
+                throw new BusinessException("空间不足，无法转存");
+            }
+
+            //转存子文件
+            if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+                saveSubFile(uid,shareUserId,fileInfo.getFid(),newFid);
+            }
+
+            if(fileService.checkFileName(myFolderId,uid,fileInfo.getFileName(),fileInfo.getFolderType())>0){
+                //重命名
+                String fileName=fileInfo.getFileName()+"_"+
+                        DateUtil.format(currTime,DateTimePatternEnum.YYYY_MM_DD_HH_MM_SS.getPattern());
+                fileInfo.setFileName(fileName);
+            }
+            fileInfo.setFid(newFid);
+            fileInfo.setFilePid(Constants.ROOT_PID);
+            fileInfo.setUserId(uid);
+            fileInfo.setLastUpdateTime(currTime);
+            fileInfo.setCreateTime(currTime);
+            fileInfo.setRecoveryTime(null);
+
+            //插入数据库
+            int resInsert=fileMapper.insert(fileInfo);
+            if(resInsert<1) throw new BusinessException("文件"+fileInfo.getFileName()+"转存失败");
+
+            //转存子文件
+            if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FILE.getType())){
+                //更新redis用户使用空间
+                Long useSpace=userSpaceDto.getUseSpace()+fileInfo.getFileSize();
+                userSpaceDto.setUseSpace(useSpace);
+                redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+            }
+
+        }
+        //更新用户数据库
+        UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+        int result=userMapper.updateUserSpace2(uid,userSpaceDto.getUseSpace(),null);
+        if(result<1) throw new BusinessException("更新user表使用空间失败");
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void saveSubFile(String uid,String ownerId,String folderId,String pid){
+        //获取所有子文件
+        List<FileInfo> subList=fileMapper.selectFileByUidAndPid(ownerId,folderId);
+        Date currTime=new Date();
+        for(FileInfo subFile:subList){
+            //判断用户空间是否充足
+            Long fileSize=subFile.getFileSize();
+            UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+            if(fileSize!=null&&fileSize+userSpaceDto.getUseSpace()>userSpaceDto.getTotalSpace()){
+                throw new BusinessException("空间不足，无法转存");
+            }
+            //转存子文件
+            String newFid=StringTool.getRandomNumber(Constants.LENGTH_10);
+            if(subFile.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
+                saveSubFile(uid,ownerId,subFile.getFid(),newFid);
+            }
+
+            if(fileService.checkFileName(folderId,uid,subFile.getFileName(),subFile.getFolderType())>0){
+                //重命名
+                String fileName=subFile.getFileName()+"_"+
+                        DateUtil.format(currTime,DateTimePatternEnum.YYYY_MM_DD_HH_MM_SS.getPattern());
+                subFile.setFileName(fileName);
+            }
+
+            subFile.setFid(newFid);
+            subFile.setFilePid(pid);
+            subFile.setUserId(uid);
+            subFile.setLastUpdateTime(currTime);
+            subFile.setCreateTime(currTime);
+            subFile.setRecoveryTime(null);
+
+            //插入数据库
+            int resInsert=fileMapper.insert(subFile);
+            if(resInsert<1) throw new BusinessException("文件"+subFile.getFileName()+"转存失败");
+
+            //转存子文件
+            if(subFile.getFolderType().equals(FileFolderTypeEnum.FILE.getType())){
+                //更新redis用户使用空间
+                userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()+subFile.getFileSize());
+                redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+            }
+        }
+
     }
 }
