@@ -56,4 +56,9 @@ public class Constants {
     public static final Integer SHAREID_LENGTH=20;
 
     public static final String SESSION_SHARE = "share_file_";
+
+    //邮箱验证码格式
+    public static final String EMAIL_TITLE="邮箱验证码";
+    public static final String EMAIL_CONTEXT="你好，你的邮箱验证码是：%s, 5分钟内有效。";
+    public static final String EMAIL_CODE="wangpan:emailCode:";
 }

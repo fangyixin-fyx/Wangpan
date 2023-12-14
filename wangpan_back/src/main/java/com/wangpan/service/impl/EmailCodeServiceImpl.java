@@ -15,6 +15,7 @@ import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.EmailCodeMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
+import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +43,8 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	private BaseConfig baseConfig;
 	@Autowired
 	private RedisComponent redisComponent;
+	@Autowired
+	private RedisUtils redisUtils;
 
 	/** 
 	 * 根据条件查询列表
@@ -139,6 +142,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 		}
 		//获得随机数
 		String code = StringTool.getRandomNumber(Constants.LENGTH_5);
+		/*
 		//重置已有验证码，置为无效
 		emailCodeMapper.disableEmailCode(email);
 		// 发送验证码
@@ -151,6 +155,15 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 		emailCode.setCreateTime(new Date());
 		emailCodeMapper.insert(emailCode);
 
+		 */
+		//存入redis，有效时间5min
+		boolean res=redisUtils.setByTime(Constants.EMAIL_CODE+email,code,300L);
+		if(!res){
+			throw new BusinessException("redis保存验证码不成功");
+		}
+		//发送验证码
+		sendCode(email,code);
+
 	}
 
 	//发送验证码到邮箱
@@ -161,11 +174,13 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 			helper.setFrom(baseConfig.getMailUsername()); //发件人
 			helper.setTo(email); //收件人
 
-			SysSettingsDto sysSettingsDto=redisComponent.getSysSettingDto();
+			//SysSettingsDto sysSettingsDto=redisComponent.getSysSettingDto();
 			//设置邮件标题
-			helper.setSubject(sysSettingsDto.getRegisterEmailTitle());
+			//helper.setSubject(sysSettingsDto.getRegisterEmailTitle());
+			helper.setSubject(Constants.EMAIL_TITLE);
 			//设置邮件内容
-			helper.setText(String.format(sysSettingsDto.getRegisterEmailContent(),code));
+			//helper.setText(String.format(sysSettingsDto.getRegisterEmailContent(),code));
+			helper.setText(String.format(Constants.EMAIL_CONTEXT,code));
 			//邮件时间
 			helper.setSentDate(new Date());
 
@@ -181,6 +196,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	 * 检查验证码是否正确
 	 */
 	public void checkCode(String email,String code){
+		/*
 		EmailCode emailCode=emailCodeMapper.selectByEmailAndCode(email,code);
 		if(emailCode==null) throw new BusinessException("验证码错误");
 		if(emailCode.getStatus()==1 ||
@@ -189,6 +205,18 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 		}
 		//验证码正确则将其标为失效，已使用
 		emailCodeMapper.disableEmailCode(email);
+
+		 */
+		String redisKey=Constants.EMAIL_CODE+email;
+		String correctCode= (String) redisUtils.get(redisKey);
+		if(correctCode==null){
+			throw new BusinessException("邮箱验证码已失效，请重新发送");
+		}
+		if(!correctCode.equals(code)){
+			throw new BusinessException("邮箱验证码错误");
+		}
+		//验证码正确，清除redis缓存
+		redisUtils.delete(redisKey);
 	}
 
 

@@ -27,15 +27,12 @@ public class RedisUtils<V> {
     /**
      * 删除缓存
      */
-    /*
-    public void delete(String... key){
-        if(key!=null && key.length>0){
-            if(key.length==1) redisTemplate.delete(key[0]);
-            else redisTemplate.delete((Collection<String>) CollectionsUtils.arrayToList(key));
+    public void delete(String key){
+        if(key!=null){
+            redisTemplate.delete(key);
         }
     }
 
-     */
 
     /**
      * 获取一个值
