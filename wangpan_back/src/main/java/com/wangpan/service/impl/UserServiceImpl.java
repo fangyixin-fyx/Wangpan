@@ -250,8 +250,9 @@ public class UserServiceImpl implements UserService {
 		//UserSpaceDto是否可改进？应该不需要额外定义
 		UserSpaceDto userSpaceDto=new UserSpaceDto();
 		userSpaceDto.setTotalSpace(user.getTotalSpace());
-		Long useSpace=fileMapper.getUsedSpaceByUid(user.getUid());
-		userSpaceDto.setUseSpace(useSpace);
+		//Long useSpace=fileMapper.getUsedSpaceByUid(user.getUid());
+		//userSpaceDto.setUseSpace(useSpace);
+		userSpaceDto.setUseSpace(user.getUseSpace());
 		String redisKey=Constants.REDIS_KEY_USERSPACE_USED+user.getUid();
 		redisUtils.setByTime(redisKey,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
 		return userDto;

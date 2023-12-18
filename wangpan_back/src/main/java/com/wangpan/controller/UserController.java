@@ -13,6 +13,7 @@ import com.wangpan.enums.VerifyRegexEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
+import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
@@ -42,6 +44,8 @@ public class UserController extends ABaseController {
     private BaseConfig baseConfig;
     @Autowired
     private RedisComponent redisComponent;
+    @Resource
+    private RedisUtils redisUtils;
 
     //登录验证码
     @RequestMapping("/checkCode")
@@ -174,7 +178,8 @@ public class UserController extends ABaseController {
     @RequestMapping("/getUseSpace")
     public ResponseVO getUseSpace(HttpSession session){
         UserDto userDto =getUserInfoFromSession(session);
-        UserSpaceDto spaceDto= redisComponent.getUsedSpaceDto(userDto.getUid());
+        //UserSpaceDto spaceDto= redisComponent.getUsedSpaceDto(userDto.getUid());
+        UserSpaceDto spaceDto=(UserSpaceDto) redisUtils.get(Constants.REDIS_KEY_USERSPACE_USED+userDto.getUid());
         return getSuccessResponseVO(spaceDto);
     }
 
