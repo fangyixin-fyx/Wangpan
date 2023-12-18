@@ -6,6 +6,7 @@ import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.UserQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
 
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.util.List;
 
@@ -138,4 +139,6 @@ public interface UserService {
 	 * @return：头像存储路径
 	 */
     String getAvatar(String userId);
+
+	void logout(HttpSession session);
 }

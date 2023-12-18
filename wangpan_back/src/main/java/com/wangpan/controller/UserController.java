@@ -181,7 +181,7 @@ public class UserController extends ABaseController {
     //退出登录
     @RequestMapping("/logout")  //Post法
     public ResponseVO logout(HttpSession session){
-        session.invalidate();
+        userService.logout(session);
         return getSuccessResponseVO(null);
     }
 

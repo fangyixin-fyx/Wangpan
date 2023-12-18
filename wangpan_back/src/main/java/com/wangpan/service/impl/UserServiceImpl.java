@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
@@ -326,6 +328,14 @@ public class UserServiceImpl implements UserService {
 			avatarFilePath=defaultAvatarFilePath;
 		}
 		return avatarFilePath;
+	}
+
+	public void logout(HttpSession session){
+		//删除redis内的用户空间数据
+		String uid=((UserDto) session.getAttribute(Constants.SESSION_USER)).getUid();
+		redisUtils.delete(Constants.REDIS_KEY_USERSPACE_USED+uid);
+		//删除保存用户信息的session
+		session.invalidate();
 	}
 
 
