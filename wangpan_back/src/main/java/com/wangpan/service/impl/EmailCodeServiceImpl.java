@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.mail.internet.MimeMessage;
@@ -134,7 +135,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	 * @param type：验证码有效检验
 	 */
 	@Override
-	@Transactional(rollbackFor = Exception.class)
+	@Transactional(rollbackFor = Exception.class,propagation = Propagation.REQUIRED)
 	public void sendEmailCode(String email, Integer type){
 		if(type==0){
 			User user=userMapper.selectByEmail(email);
@@ -142,20 +143,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 		}
 		//获得随机数
 		String code = StringTool.getRandomNumber(Constants.LENGTH_5);
-		/*
-		//重置已有验证码，置为无效
-		emailCodeMapper.disableEmailCode(email);
-		// 发送验证码
-		sendCode(email,code);
-		//记入数据库
-		EmailCode emailCode=new EmailCode();
-		emailCode.setCode(code);
-		emailCode.setEmail(email);
-		emailCode.setStatus(Constants.ZERO);
-		emailCode.setCreateTime(new Date());
-		emailCodeMapper.insert(emailCode);
 
-		 */
 		//存入redis，有效时间5min
 		boolean res=redisUtils.setByTime(Constants.EMAIL_CODE+email,code,300L);
 		if(!res){
@@ -173,13 +161,9 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 			MimeMessageHelper helper=new MimeMessageHelper(message,true);
 			helper.setFrom(baseConfig.getMailUsername()); //发件人
 			helper.setTo(email); //收件人
-
-			//SysSettingsDto sysSettingsDto=redisComponent.getSysSettingDto();
-			//设置邮件标题
-			//helper.setSubject(sysSettingsDto.getRegisterEmailTitle());
+			//设置邮箱标题
 			helper.setSubject(Constants.EMAIL_TITLE);
 			//设置邮件内容
-			//helper.setText(String.format(sysSettingsDto.getRegisterEmailContent(),code));
 			helper.setText(String.format(Constants.EMAIL_CONTEXT,code));
 			//邮件时间
 			helper.setSentDate(new Date());

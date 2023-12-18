@@ -6,6 +6,7 @@ import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.UserQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
 
+import java.io.File;
 import java.util.List;
 
 public interface UserService {
@@ -130,4 +131,11 @@ public interface UserService {
 	 * @return
 	 */
 	int updateStatusByAdmin(String userId, String status, String currUid);
+
+	/**
+	 * 获取头像
+	 * @param userId
+	 * @return：头像存储路径
+	 */
+    String getAvatar(String userId);
 }

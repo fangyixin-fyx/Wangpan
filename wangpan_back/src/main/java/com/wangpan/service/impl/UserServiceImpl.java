@@ -3,7 +3,6 @@ package com.wangpan.service.impl;
 import com.wangpan.config.BaseConfig;
 import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
-import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserForAdminDto;
 import com.wangpan.dto.UserSpaceDto;
@@ -18,12 +17,15 @@ import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.service.UserService;
+import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringTool;
 import org.apache.commons.lang3.ArrayUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.io.File;
 import java.util.Date;
 import java.util.List;
 
@@ -40,6 +42,10 @@ public class UserServiceImpl implements UserService {
 	private BaseConfig baseConfig;
 	@Autowired
 	private FileMapper fileMapper;
+	@Autowired
+	private RedisUtils redisUtils;
+
+	private Logger logger= LoggerFactory.getLogger(UserServiceImpl.class);
 
 	/** 
 	 * 根据条件查询列表
@@ -212,8 +218,8 @@ public class UserServiceImpl implements UserService {
 		newUser.setUseSpace(0L);
 		//系统配置初始内存参数
 		//可改进，初始化参数不必放在redis中，可以放在Constant类
-		SysSettingsDto sysSettingsDto=redisComponet.getSysSettingDto();
-		newUser.setTotalSpace(sysSettingsDto.getUserInitUseSpace()*Constants.MB);
+		//SysSettingsDto sysSettingsDto=redisComponet.getSysSettingDto();
+		newUser.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
 		userMapper.insert(newUser);
 
 	}
@@ -244,7 +250,8 @@ public class UserServiceImpl implements UserService {
 		userSpaceDto.setTotalSpace(user.getTotalSpace());
 		Long useSpace=fileMapper.getUsedSpaceByUid(user.getUid());
 		userSpaceDto.setUseSpace(useSpace);
-		redisComponet.saveUserSpaceUsed(user.getUid(),userSpaceDto);	//将用户使用空间存入redis，可修改
+		String redisKey=Constants.REDIS_KEY_USERSPACE_USED+user.getUid();
+		redisUtils.setByTime(redisKey,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
 		return userDto;
 	}
 
@@ -300,5 +307,26 @@ public class UserServiceImpl implements UserService {
 			return result;
 		}
 	}
+
+	public String getAvatar(String userId){
+		String path=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
+		File pathFile=new File(path);
+		//判断路径是否存在
+		if(!pathFile.exists()) pathFile.mkdirs();
+		String avatarFilePath=path+userId+".jpg"; //绝对路径
+		File avatarFile=new File(avatarFilePath);
+		//如果头像不存在，赋予默认头像
+		if(!avatarFile.exists()){
+			String defaultAvatarFilePath=path+Constants.AVATAR_DEFAULT;
+			//如果默认头像不存在
+			if(!new File(defaultAvatarFilePath).exists()){
+				logger.error("业务异常，服务器未存储默认头像数据");
+				throw new BusinessException("默认头像不存在，系统异常。");
+			}
+			avatarFilePath=defaultAvatarFilePath;
+		}
+		return avatarFilePath;
+	}
+
 
 }

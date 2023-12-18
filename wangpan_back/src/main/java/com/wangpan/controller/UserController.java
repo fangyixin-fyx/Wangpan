@@ -141,6 +141,7 @@ public class UserController extends ABaseController {
 
     @GetMapping("/getAvatar/{userId}")
     public void getAvatar(HttpServletResponse response, @PathVariable("userId") String userId){
+        /*
         String path=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
         File pathFile=new File(path);
         //判断路径是否存在
@@ -154,24 +155,12 @@ public class UserController extends ABaseController {
             if(!new File(defaultAvatarFilePath).exists()) noDefaultAvatar(response);  //这里可改进
             avatarFilePath=defaultAvatarFilePath;
         }
+         */
+        String avatarFilePath=userService.getAvatar(userId);
         response.setContentType("image/jpg");
         readFile(response,avatarFilePath);
     }
 
-    private void noDefaultAvatar(HttpServletResponse response){
-        response.setHeader("Content-Type","application/json:charset=UTF-8");
-        response.setStatus(HttpStatus.OK.value());
-        PrintWriter writer=null;
-        try{
-            writer=response.getWriter();
-            writer.println("默认头像文件不存在，请设置！");
-            writer.close();
-        }catch (Exception e){
-            logger.error("输出无默认头像异常",e);
-        }finally {
-            writer.close();
-        }
-    }
 
     //获取用户信息---未用到
     @GetMapping("/getUserInfo")
