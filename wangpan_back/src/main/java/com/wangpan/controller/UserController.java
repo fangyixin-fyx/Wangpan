@@ -144,6 +144,7 @@ public class UserController extends ABaseController {
     }
 
     @GetMapping("/getAvatar/{userId}")
+    @GlobalInterceptor
     public void getAvatar(HttpServletResponse response, @PathVariable("userId") String userId){
         /*
         String path=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
@@ -168,6 +169,7 @@ public class UserController extends ABaseController {
 
     //获取用户信息---未用到
     @GetMapping("/getUserInfo")
+    @GlobalInterceptor
     public ResponseVO getUserInfo(HttpSession session){
         UserDto sessionWebUserDto =getUserInfoFromSession(session);
         return getSuccessResponseVO(sessionWebUserDto);
@@ -176,6 +178,7 @@ public class UserController extends ABaseController {
     //获取用户空间
     //@PostMapping(value = "/getUseSpace",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @RequestMapping("/getUseSpace")
+    @GlobalInterceptor
     public ResponseVO getUseSpace(HttpSession session){
         UserDto userDto =getUserInfoFromSession(session);
         //UserSpaceDto spaceDto= redisComponent.getUsedSpaceDto(userDto.getUid());
@@ -192,6 +195,7 @@ public class UserController extends ABaseController {
 
     //更新头像
     @PostMapping("/updateUserAvatar")
+    @GlobalInterceptor
     public ResponseVO updateUserAvatar(HttpSession session, MultipartFile avatar){
         UserDto userDto =getUserInfoFromSession(session);
         String baseFilePath=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
@@ -212,12 +216,12 @@ public class UserController extends ABaseController {
         userService.updateUserByUid(user, userDto.getUid());
         userDto.setAvatar(null);
         session.setAttribute(Constants.SESSION_USER, userDto);
-        System.out.println("---updateAvatar----"+session.getAttribute(Constants.SESSION_USER));
         return getSuccessResponseVO(null);
     }
 
     //登陆后更新密码
     @PostMapping("/updatePassword")
+    @GlobalInterceptor
     public ResponseVO updatePassword(HttpSession session,String password){
         UserDto userDto =getUserInfoFromSession(session);
         User user=new User();

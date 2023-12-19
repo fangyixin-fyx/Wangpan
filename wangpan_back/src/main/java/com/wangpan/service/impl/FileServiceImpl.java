@@ -17,10 +17,7 @@ import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.FileService;
-import com.wangpan.utils.DateUtil;
-import com.wangpan.utils.FfmpegUtils;
-import com.wangpan.utils.ScaleFilter;
-import com.wangpan.utils.StringTool;
+import com.wangpan.utils.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -55,6 +52,8 @@ public class FileServiceImpl implements FileService {
 	@Resource
 	@Lazy   //避免循环依赖
 	private FileService fileServiceImpl;
+	@Autowired
+	private RedisUtils redisUtils;
 
 
 	private static final Logger logger= LoggerFactory.getLogger(FileServiceImpl.class);
@@ -149,14 +148,10 @@ public class FileServiceImpl implements FileService {
 			resultDto.setFileId(fileId);
 			Date currentDate=new Date();
 			//获取当前空间信息
-			UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
-
+			//UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+			UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(Constants.REDIS_KEY_USERSPACE_USED+uid);
 			//第一个分片
 			if(chunkIndex==0) {
-				//FileQuery fileQuery = new FileQuery();
-				//fileQuery.setFileMd5(fileMd5);
-				//fileQuery.setSimplePage(new SimplePage(0, 1));
-				//fileQuery.setStatus(FileStatusEnum.TRANSFER.getStatus());
 				//如果数据库已经有这个文件，直接秒传
 				List<FileInfo> dbFileList = fileMapper.selectByFileMd5(fileMd5);
 				if (!dbFileList.isEmpty()) {
@@ -192,8 +187,8 @@ public class FileServiceImpl implements FileService {
 			}
 
 			//判断文件使用的磁盘空间，先在缓存里计算
-			String key = Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId;
-			Long currentTempSize = redisComponent.getFileSizeFromRedis(key);
+			String sizeKey = Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId;
+			Long currentTempSize = redisUtils.getFileSizeFromRedis(sizeKey);
 			if (currentTempSize + file.getSize() > userSpaceDto.getTotalSpace()) {
 				throw new BusinessException(ResponseCodeEnum.CODE_FILE);
 			}
@@ -215,7 +210,8 @@ public class FileServiceImpl implements FileService {
 			if(chunkIndex<chunks-1){
 				resultDto.setStatus(UploadStatusEnum.UPLOADING.getCode());
 				//更新redis
-				redisComponent.setFileTempSize(uid,fileId,file.getSize());
+				//redisComponent.setFileTempSize(uid,fileId,file.getSize());
+				redisUtils.setFileTempSize(uid,fileId,file.getSize());
 				return resultDto;
 			}
 
@@ -247,9 +243,11 @@ public class FileServiceImpl implements FileService {
 			fileMapper.insert(fileInfo);
 
 			//更新redis的用户空间数据
-			redisComponent.setFileTempSize(uid,fileId,file.getSize());
+			//redisComponent.setFileTempSize(uid,fileId,file.getSize());
+			redisUtils.setFileTempSize(uid,fileId,file.getSize());
 			//获取文件的所有分片空间使用大小
-			Long totalSize=redisComponent.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
+			//Long totalSize=redisComponent.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
+			Long totalSize=redisUtils.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
 			//更新user表
 			updateUserSpace(userDto,totalSize);
 
@@ -261,6 +259,7 @@ public class FileServiceImpl implements FileService {
 				public void afterCommit() {
 					//通过fileId去查文件，必须要等事务提交后才有fileId
 					fileServiceImpl.transferFile(fileInfo.getFid(),userDto); //这样调用异步管理才能生效
+
 				}
 			});
 
@@ -328,10 +327,13 @@ public class FileServiceImpl implements FileService {
 		if(result==0){
 			throw new BusinessException(ResponseCodeEnum.CODE_FILE);
 		}
-		UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(userDto.getUid());
+		//UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(userDto.getUid());
+		String key=Constants.REDIS_KEY_USERSPACE_USED+userDto.getUid();
+		UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(key);
 		//更新redis数据
 		userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()+useSpace);
-		redisComponent.saveUserSpaceUsed(userDto.getUid(),userSpaceDto);
+		//redisComponent.saveUserSpaceUsed(userDto.getUid(),userSpaceDto);
+		redisUtils.setByTime(key,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
 	}
 
 	/**
@@ -396,6 +398,9 @@ public class FileServiceImpl implements FileService {
 					FileUtils.copyFile(targetPicFile,coverFile);
 				}
 			}
+			//删除redis存储的文件临时大小
+			String sizeKey = Constants.REDIS_USER_FILE_TEMP_SIZE + userDto.getUid() + fileId;
+			redisUtils.delete(sizeKey);
 
 		}catch (Exception e){
 			logger.error("文件转码失败，文件ID:{}，userid:{}",fileId,userDto.getUid(),e);
@@ -794,10 +799,13 @@ public class FileServiceImpl implements FileService {
 		fileMapper.deleteCompletelyByFid(fidArray);
 		//更新用户空间
 		Long currSize=fileMapper.getUsedSpaceByUid(uid);
-		UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+		String spaceKey=Constants.REDIS_KEY_USERSPACE_USED+uid;
+		//UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+		UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(spaceKey);
 		userMapper.updateUserSpace2(uid,currSize,userSpaceDto.getTotalSpace());
 		userSpaceDto.setUseSpace(currSize);
-		redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+		//redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+		redisUtils.setByTime(spaceKey,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
 		//删除本地文件
 		/*
 		String basePath=baseConfig.getProjectFolder()+Constants.FILE_PATH;

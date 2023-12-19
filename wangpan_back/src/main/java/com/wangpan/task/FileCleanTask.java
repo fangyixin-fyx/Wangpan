@@ -19,7 +19,7 @@ import java.util.*;
  * @author fangyixin
  * @date 2023/12/9 21:21
  */
-@Component
+@Component("fileCleanTask")
 public class FileCleanTask {
     @Autowired
     private FileMapper fileMapper;
