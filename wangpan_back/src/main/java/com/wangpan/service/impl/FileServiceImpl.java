@@ -224,6 +224,14 @@ public class FileServiceImpl implements FileService {
 			if(fileNameIsExist(filePid,userDto.getUid(),fileName)){
 				fileName=getFileNameNoSuffix(fileName) + "_" + currentDate + getFileSuffix(fileName);
 			}
+
+			//更新redis的用户空间数据
+			//redisComponent.setFileTempSize(uid,fileId,file.getSize());
+			redisUtils.setFileTempSize(uid,fileId,file.getSize());
+			//获取文件的所有分片空间使用大小
+			//Long totalSize=redisComponent.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
+			Long totalSize=redisUtils.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
+
 			//插入数据库
 			FileInfo fileInfo=new FileInfo();
 			fileInfo.setFid(fileId);
@@ -239,15 +247,9 @@ public class FileServiceImpl implements FileService {
 			fileInfo.setStatus(FileStatusEnum.TRANSFER.getStatus());
 			fileInfo.setFolderType(FileFolderTypeEnum.FILE.getType());
 			fileInfo.setDelFlag(FileDelFlagEnum.USING.getStatus());
+			fileInfo.setFileSize(totalSize);
 			//更新file表
 			fileMapper.insert(fileInfo);
-
-			//更新redis的用户空间数据
-			//redisComponent.setFileTempSize(uid,fileId,file.getSize());
-			redisUtils.setFileTempSize(uid,fileId,file.getSize());
-			//获取文件的所有分片空间使用大小
-			//Long totalSize=redisComponent.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
-			Long totalSize=redisUtils.getFileSizeFromRedis(Constants.REDIS_USER_FILE_TEMP_SIZE + uid + fileId);
 			//更新user表
 			updateUserSpace(userDto,totalSize);
 
@@ -407,7 +409,6 @@ public class FileServiceImpl implements FileService {
 			transferSuccess=false;
 		}finally {
 			FileInfo updateFile=new FileInfo();
-			updateFile.setFileSize(new File(targetFilePath).length());
 			updateFile.setFileCover(cover);
 			updateFile.setStatus(transferSuccess ? FileStatusEnum.SUCCESS.getStatus() : FileStatusEnum.FAIL.getStatus());
 			fileMapper.updateStatusWithOldStatus(fileId,userDto.getUid(),updateFile,FileStatusEnum.TRANSFER.getStatus());
