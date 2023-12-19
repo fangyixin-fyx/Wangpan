@@ -33,9 +33,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.*;
 import java.util.List;
 
@@ -51,7 +49,7 @@ public class FileServiceImpl implements FileService {
 	private BaseConfig baseConfig;
 	@Resource
 	@Lazy   //避免循环依赖
-	private FileService fileServiceImpl;
+	private FileServiceImpl fileService;
 	@Autowired
 	private RedisUtils redisUtils;
 
@@ -260,7 +258,7 @@ public class FileServiceImpl implements FileService {
 				@Override
 				public void afterCommit() {
 					//通过fileId去查文件，必须要等事务提交后才有fileId
-					fileServiceImpl.transferFile(fileInfo.getFid(),userDto); //这样调用异步管理才能生效
+					fileService.transferFile(fileInfo.getFid(),userDto); //这样调用异步管理才能生效
 
 				}
 			});
@@ -422,18 +420,20 @@ public class FileServiceImpl implements FileService {
 		}
 		File[] files=dir.listFiles();
 		File targetFile =new File(toFilePath);	//创建目标文件
-		RandomAccessFile writeFile=null;
+		BufferedOutputStream writeFile=null;
 		try{
-			writeFile=new RandomAccessFile(targetFile,"rw");  //读写
+			writeFile=new BufferedOutputStream(new FileOutputStream(targetFile));  //读写
 			//一次读的数据大小
 			byte[] bytes=new byte[1024*10];
 			//依次读取分片文件
 			for(int i=0;i<files.length;i++){
 				int len=-1;
 				File chunkFile=new File(dirPath+"/"+i);
-				RandomAccessFile readFile=null;
+				//RandomAccessFile readFile=null;
+				BufferedInputStream readFile=null;
 				try {
-					readFile=new RandomAccessFile(chunkFile,"r");
+					//readFile=new RandomAccessFile(chunkFile,"r");
+					readFile=new BufferedInputStream(new FileInputStream(chunkFile));
 					//将最多 bytes.length 个数据字节从此文件读入bytes数组。
 					while((len=readFile.read(bytes))!=-1){
 						//将读取数据写入文件
