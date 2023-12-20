@@ -58,6 +58,7 @@ public class FileController extends ABaseController {
 	}
 
 	@PostMapping("/uploadFile")
+	@GlobalInterceptor
 	public ResponseVO uploadFile(HttpSession session, String fileId, MultipartFile file,String fileName,
 								 String filePid,String fileMd5,Integer chunkIndex,Integer chunks){
 		UserDto userDto=getUserInfoFromSession(session);
@@ -69,6 +70,7 @@ public class FileController extends ABaseController {
 	 * 通过图片名获取图片，显示缩略图或封面
 	 */
 	@GetMapping("/getImage/{imageName}")
+	@GlobalInterceptor
 	public void getImage(HttpServletResponse response,HttpSession session, @PathVariable("imageName") String imageName){
 		if(StringTool.isEmpty(imageName)){
 			return;
@@ -77,8 +79,7 @@ public class FileController extends ABaseController {
 		String baseFilePath=baseConfig.getProjectFolder()+"/"+Constants.FILE_PATH+getUserInfoFromSession(session).getUid()+"/";
 		String filePath=fileService.findFilePath(baseFilePath,imageName);
 		imageSuffix=imageSuffix.replace(".","");
-		String contentType="image/"+imageSuffix;
-		response.setContentType(contentType);
+		response.setContentType("image/"+imageSuffix);
 		response.setHeader("Cache-Control","max-age=2592000");
 		readFile(response,filePath);
 	}
@@ -87,6 +88,7 @@ public class FileController extends ABaseController {
 	 * 读取视频文件接口
 	 */
 	@GetMapping("/ts/getVideoInfo/{fileId}")
+	@GlobalInterceptor
 	public void getVideoInfo(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
 		UserDto userDto=getUserInfoFromSession(session);
 		String filePath=fileService.getFile(fileId,userDto.getUid());
@@ -94,10 +96,11 @@ public class FileController extends ABaseController {
 	}
 
 	/**
-	 * 读取文档接口
+	 * 预览非视频文件的接口
 	 * @return: 文件流直接写入response里，不需要返回
 	 */
 	@PostMapping("/getFile/{fileId}")
+	@GlobalInterceptor
 	public void getFile(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
 		UserDto userDto=getUserInfoFromSession(session);
 		String filePath=fileService.getFile(fileId,userDto.getUid());
@@ -108,6 +111,7 @@ public class FileController extends ABaseController {
 	 * 新建目录
 	 */
 	@PostMapping("/newFoloder")
+	@GlobalInterceptor
 	public ResponseVO createNewFolder(HttpSession session,@RequestParam("filePid") String filePid,
 								@RequestParam("fileName") String folderName){
 		UserDto userDto=getUserInfoFromSession(session);
@@ -119,6 +123,7 @@ public class FileController extends ABaseController {
 	 * 获取当前目录层级
 	 */
 	@PostMapping("/getFolderInfo")
+	@GlobalInterceptor
 	public ResponseVO getFolderInfo(HttpSession session,String path){
 		String uid=getUserInfoFromSession(session).getUid();
 		List<FileInfo> fileInfoList=fileService.getFolderInfo(path,uid);
@@ -131,6 +136,7 @@ public class FileController extends ABaseController {
 	 * 文件重命名
 	 */
 	@PostMapping("/rename")
+	@GlobalInterceptor
 	public ResponseVO rename(@RequestParam("fileId") String fileId,@RequestParam("fileName") String fileName){
 		FileInfo fileInfo=fileService.rename(fileId,fileName);
 		return getSuccessResponseVO(CopyUtil.copy(fileInfo, FileVO.class));
@@ -143,6 +149,7 @@ public class FileController extends ABaseController {
 	 * @return 可移动的所有目录对象
 	 */
 	@PostMapping("/loadAllFolder")
+	@GlobalInterceptor
 	public ResponseVO getAllFolder(HttpSession session,@RequestParam("filePid") String pid,
 								   @RequestParam("currentFileIds") String currentFids){
 		String uid=getUserInfoFromSession(session).getUid();
@@ -160,15 +167,16 @@ public class FileController extends ABaseController {
 	}
 
 	@PostMapping("/changeFileFolder")
-	public ResponseVO changeFilesToOtherFolder(HttpSession session,@RequestParam("filePid") String pid,
-								   @RequestParam("fileIds") String fileIDs){
-		String uid=getUserInfoFromSession(session).getUid();
-		FileQuery fileQuery=new FileQuery();
+	@GlobalInterceptor
+	public ResponseVO changeFilesToOtherFolder(@RequestParam("filePid") String pid,
+											   @RequestParam("fileIds") String fileIDs){
+
 		fileService.changeFilesPid(fileIDs,pid);
 		return getSuccessResponseVO(null);
 	}
 
 	@PostMapping("/createDownloadUrl/{fileId}")
+	@GlobalInterceptor
 	public ResponseVO createDownloadUrl(HttpSession session,@PathVariable("fileId") String fileId){
 		String uid=getUserInfoFromSession(session).getUid();
 		String code=fileService.createDownloadUrl(fileId,uid);
@@ -176,6 +184,7 @@ public class FileController extends ABaseController {
 	}
 
 	@GetMapping("/download/{code}")
+	@GlobalInterceptor
 	public void download(HttpServletRequest request, HttpServletResponse response,
 							   @PathVariable("code") String code) throws UnsupportedEncodingException {
 		Map<String,String> map=fileService.download(code);
@@ -194,6 +203,7 @@ public class FileController extends ABaseController {
 	}
 
 	@PostMapping("/delFile")
+	@GlobalInterceptor
 	public ResponseVO deleteFiles(@RequestParam("fileIds") String fids){
 		fileService.removeFileToRecycleBin(fids);
 

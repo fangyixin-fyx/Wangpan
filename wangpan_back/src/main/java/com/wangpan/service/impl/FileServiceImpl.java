@@ -36,6 +36,7 @@ import javax.annotation.Resource;
 import java.io.*;
 import java.util.*;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service("fileService")
 public class FileServiceImpl implements FileService {
@@ -486,14 +487,14 @@ public class FileServiceImpl implements FileService {
 		String CMD_CUT_TS=Constants.CMD_CUT_TS;
 		String tsPath= tsFile.getPath()+"/"+Constants.TS_NAME;
 		//上传视频的编码格式必须是h264，否则不能转换为ts文件
-		//生成ts,播放的时候也是切片播放的
+		//转为ts文件,播放的时候也是切片播放的
 		String cmd=String.format(CMD_TRANSFER_2TS,videoFilePath,tsPath);
 		FfmpegUtils.executeCommand(cmd,false);
 		//生成索引文件.m3u8和切片文件.ts
 		String m3u8Path=tsFile.getPath()+"/"+Constants.M3U8_NAME;
 		cmd=String.format(CMD_CUT_TS,tsPath,m3u8Path,tsFile.getPath(),fileId);
 		FfmpegUtils.executeCommand(cmd,false);
-		//删除index.ts
+		//删除转换的index.ts文件
 		new File(tsPath).delete();
 
 	}
@@ -526,18 +527,19 @@ public class FileServiceImpl implements FileService {
 	 */
 	public String getFile(String fid,String uid){
 		FileInfo fileInfo=null;
-		String filePath=null;
-
 		if(fid.endsWith(".ts")){
 			String[] tsArray=fid.split("_");
-			String realFileId=tsArray[0];
-			fileInfo=getFileByFidAndUserId(realFileId,uid);
+			String realFid=tsArray[0];
+			fileInfo=getFileByFidAndUserId(realFid,uid);
 		}else{
 			fileInfo=getFileByFidAndUserId(fid,uid);
 		}
 
 		if(fileInfo==null) return null;
+
 		String folderPath=baseConfig.getProjectFolder()+Constants.FILE_PATH;
+		String filePath=null;
+
 		//如果是视频文件，预览时不读取path值，而是同文件夹下的切片文件
 		if(fileInfo.getFileCategory().equals(FileCategoryEnum.VIDEO.getCategory())){
 			//String folderPath=baseConfig.getProjectFolder()+Constants.FILE_PATH+getFileNameNoSuffix(fileInfo.getFilePath());
@@ -558,11 +560,11 @@ public class FileServiceImpl implements FileService {
 	}
 
 	public FileInfo createNewFolder(String filePid,String uid,String folderName){
-		FileInfo fileInfo=new FileInfo();
 		//文件名重复检测
 		if(checkFileName(filePid,uid,folderName,FileFolderTypeEnum.FOLDER.getType())!=0){
 			throw new BusinessException("此目录下已存在同名文件，请修改名称");
 		}
+		FileInfo fileInfo=new FileInfo();
 		Date currDate=new Date();
 		fileInfo.setFilePid(filePid);
 		fileInfo.setUserId(uid);
@@ -645,8 +647,15 @@ public class FileServiceImpl implements FileService {
 		String[] fids=fileIDs.split(",");
 		FileInfo fileInfo=new FileInfo();
 		Date currDate=new Date();
-		//获取该目录下的所有文件的名字
+		//获取目标目录下的所有文件的名字
 		List<String> existFileName=fileMapper.getFileNameByPid(pid);
+		//改为map存储，方便查找，避免嵌套循环
+		Map<String,Integer> fileNameMap=existFileName.stream().collect(Collectors.toMap(
+				//使用文件名作为键
+				name->name,
+				//值映射为1
+				name->1
+		));
 		//将这些文件的pid修改
 		for(String fid:fids){
 			fileInfo=fileMapper.selectByFid(fid);
@@ -657,7 +666,8 @@ public class FileServiceImpl implements FileService {
 			}
 			//判断移动目录是否有同名文件
 			String fileName=fileInfo.getFileName();
-			if(existFileName.contains(fileName)){
+			//if(existFileName.contains(fileName)){
+			if(fileNameMap.getOrDefault(fileName,0)==1){
 				fileInfo.setFileName(getFileNameNoSuffix(fileName)+"_"+
 						DateUtil.format(currDate,DateTimePatternEnum.YYYY_MM_DD_HH.getPattern())+getFileSuffix(fileName));
 			}
