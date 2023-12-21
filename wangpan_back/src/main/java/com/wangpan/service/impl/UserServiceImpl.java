@@ -281,6 +281,7 @@ public class UserServiceImpl implements UserService {
 		return result;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public int updateUserSpace(String userId,String changeSpace,String currUser){
 		if(changeSpace==null) return 0;
 		Long totalSpace=Long.valueOf(changeSpace);
@@ -291,11 +292,13 @@ public class UserServiceImpl implements UserService {
 			throw new BusinessException("修改失败，使用空间大于修改空间！");
 		}
 		int result=userMapper.updateUserSpace2(userId,null, space);
+		//如果是当前用户修改自身，需要更新redis数据
 		if(result>0&&userId.equals(currUser)){
 			UserSpaceDto userSpaceDto=new UserSpaceDto();
 			userSpaceDto.setUseSpace(user.getUseSpace());
 			userSpaceDto.setTotalSpace(space);
-			redisComponet.saveUserSpaceUsed(userId,userSpaceDto);
+			//redisComponet.saveUserSpaceUsed(userId,userSpaceDto);
+			redisUtils.setByTime(Constants.REDIS_KEY_USERSPACE_USED+userId,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
 		}
 		return result;
 	}

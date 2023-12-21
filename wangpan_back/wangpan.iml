@@ -15,7 +15,7 @@
             <entry key="lastExternalPluginCheckTime" value="1701763811202" />
           </map>
         </option>
-        <option name="version" value="15" />
+        <option name="version" value="17" />
       </configuration>
     </facet>
     <facet type="Spring" name="Spring">
@@ -30,7 +30,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-web:2.6.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter:2.6.1" level="project" />

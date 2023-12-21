@@ -100,25 +100,25 @@
 	<!--扩展的查询条件列-->
 	<sql id="base_query_condition_extend">
 		<if test="query.fidFuzzy !=null and query.fidFuzzy!=''">
-			 and fid like concat('%', #{query.fidFuzzy}, '%'}
+			 and fid like concat('%', #{query.fidFuzzy}, '%')
 		</if>
 		<if test="query.userIdFuzzy !=null and query.userIdFuzzy!=''">
-			 and userId like concat('%', #{query.userIdFuzzy}, '%'}
+			 and userId like concat('%', #{query.userIdFuzzy}, '%')
 		</if>
 		<if test="query.fileMd5Fuzzy !=null and query.fileMd5Fuzzy!=''">
-			 and fileMd5 like concat('%', #{query.fileMd5Fuzzy}, '%'}
+			 and fileMd5 like concat('%', #{query.fileMd5Fuzzy}, '%')
 		</if>
 		<if test="query.filePidFuzzy !=null and query.filePidFuzzy!=''">
-			 and filePid like concat('%', #{query.filePidFuzzy}, '%'}
+			 and filePid like concat('%', #{query.filePidFuzzy}, '%')
 		</if>
 		<if test="query.fileNameFuzzy !=null and query.fileNameFuzzy!=''">
-			 and fileName like concat('%', #{query.fileNameFuzzy}, '%'}
+			 and fileName like concat('%', #{query.fileNameFuzzy}, '%')
 		</if>
 		<if test="query.fileCoverFuzzy !=null and query.fileCoverFuzzy!=''">
-			 and fileCover like concat('%', #{query.fileCoverFuzzy}, '%'}
+			 and fileCover like concat('%', #{query.fileCoverFuzzy}, '%')
 		</if>
 		<if test="query.filePathFuzzy !=null and query.filePathFuzzy!=''">
-			 and filePath like concat('%', #{query.filePathFuzzy}, '%'}
+			 and filePath like concat('%', #{query.filePathFuzzy}, '%')
 		</if>
 		<if test="query.createTimeStart !=null and query.createTimeStart!=''">
 			<![CDATA[ and createTime >= str_to_date(#{query.createTimeStart}, '%Y-%m-%d') ]]>
@@ -663,7 +663,7 @@
 		from file f left join user u on f.userId=u.uid
 		<where>
 			<if test="bean.fileNameFuzzy !=null and bean.fileNameFuzzy!=''">
-				and fileName like concat('%', #{bean.fileNameFuzzy}, '%'}
+				and fileName like concat('%', #{bean.fileNameFuzzy}, '%')
 			</if>
 		</where>
 		order by #{bean.orderBy}

@@ -2,17 +2,13 @@ package com.wangpan.controller;
 
 import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.config.RedisComponent;
-import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
-import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserForAdminDto;
 import com.wangpan.entity.po.FileInfo;
-import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.FileQuery;
 import com.wangpan.entity.query.UserQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.entity.vo.ResponseVO;
-import com.wangpan.enums.UserStateEnum;
 import com.wangpan.service.FileService;
 import com.wangpan.service.FileShareService;
 import com.wangpan.service.UserService;
@@ -41,12 +37,14 @@ public class AdminController extends ABaseController{
     private SysSettingsDto sysSettingsDto;
 
     @PostMapping("/getSysSettings")
+    @GlobalInterceptor
     public ResponseVO getSystemSettings(){
         //return getSuccessResponseVO(redisComponent.getSysSettingDto());
         return getSuccessResponseVO(sysSettingsDto);
     }
 
     @PostMapping("/saveSysSettings")
+    @GlobalInterceptor
     public ResponseVO saveSysSettings(String registerEmailTitle,String registerEmailContent,String userInitUseSpace){
         /*
         SysSettingsDto sysSettingsDto=new SysSettingsDto();
@@ -67,12 +65,14 @@ public class AdminController extends ABaseController{
     }
 
     @PostMapping("/loadUserList")
+    @GlobalInterceptor
     public ResponseVO getUserList(UserQuery userQuery){
         PaginationResultVO<UserForAdminDto> resultVO=userService.adminGetUserListByPage(userQuery);
         return getSuccessResponseVO(resultVO);
     }
 
     @PostMapping("/updateUserStatus")
+    @GlobalInterceptor
     public ResponseVO updateUserStatus(String userId, String status,HttpSession session){
         String currUid=getUserInfoFromSession(session).getUid();
         int result=userService.updateStatusByAdmin(userId,status,currUid);
@@ -88,6 +88,7 @@ public class AdminController extends ABaseController{
     }
 
     @PostMapping("/updateUserSpace")
+    @GlobalInterceptor
     public ResponseVO updateUserSpace(HttpSession session,String userId,String changeSpace){
         int result=userService.updateUserSpace(userId,changeSpace,getUserInfoFromSession(session).getUid());
         if(result>0) return getSuccessResponseVO(null);
@@ -95,7 +96,8 @@ public class AdminController extends ABaseController{
     }
 
     @PostMapping("/loadFileList")
-    private ResponseVO loadFileList(String pageNo,String pageSize,String fileNameFuzzy){
+    @GlobalInterceptor
+    public ResponseVO loadFileList(String pageNo,String pageSize,String fileNameFuzzy){
         FileQuery fileQuery=new FileQuery();
         if(!StringTool.isEmpty(pageNo)){
             fileQuery.setPageNo(Integer.valueOf(pageNo));
@@ -105,6 +107,7 @@ public class AdminController extends ABaseController{
         }
         fileQuery.setFileNameFuzzy(fileNameFuzzy);
         fileQuery.setOrderBy("lastUpdateTime desc");
+        fileQuery.setFilePid(String.valueOf(0));
         PaginationResultVO<FileInfo> result=fileService.adminFindListByPage(fileQuery);
         return getSuccessResponseVO(result);
     }

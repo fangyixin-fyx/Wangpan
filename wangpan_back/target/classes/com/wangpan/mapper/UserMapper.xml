@@ -75,22 +75,22 @@
     <!--扩展的查询条件列-->
     <sql id="base_query_condition_extend">
         <if test="query.uidFuzzy !=null and query.uidFuzzy!=''">
-            and uid like concat('%', #{query.uidFuzzy}, '%'}
+            and uid like concat('%', #{query.uidFuzzy}, '%')
         </if>
         <if test="query.usernameFuzzy !=null and query.usernameFuzzy!=''">
-            and username like concat('%', #{query.usernameFuzzy}, '%'}
+            and username like concat('%', #{query.usernameFuzzy}, '%')
         </if>
         <if test="query.passwordFuzzy !=null and query.passwordFuzzy!=''">
-            and password like concat('%', #{query.passwordFuzzy}, '%'}
+            and password like concat('%', #{query.passwordFuzzy}, '%')
         </if>
         <if test="query.emailFuzzy !=null and query.emailFuzzy!=''">
-            and email like concat('%', #{query.emailFuzzy}, '%'}
+            and email like concat('%', #{query.emailFuzzy}, '%')
         </if>
         <if test="query.qqOpenIDFuzzy !=null and query.qqOpenIDFuzzy!=''">
-            and qqOpenID like concat('%', #{query.qqOpenIDFuzzy}, '%'}
+            and qqOpenID like concat('%', #{query.qqOpenIDFuzzy}, '%')
         </if>
         <if test="query.qqIconFuzzy !=null and query.qqIconFuzzy!=''">
-            and qqIcon like concat('%', #{query.qqIconFuzzy}, '%'}
+            and qqIcon like concat('%', #{query.qqIconFuzzy}, '%')
         </if>
         <if test="query.registrationTimeStart !=null and query.registrationTimeStart!=''">
             <![CDATA[ and registrationTime >= str_to_date(#{query.registrationTimeStart}, '%Y-%m-%d') ]]>

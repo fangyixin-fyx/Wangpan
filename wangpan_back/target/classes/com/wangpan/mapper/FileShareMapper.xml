@@ -61,13 +61,13 @@
 	<!--扩展的查询条件列-->
 	<sql id="base_query_condition_extend">
 		<if test="query.shareIdFuzzy !=null and query.shareIdFuzzy!=''">
-			 and shareId like concat('%', #{query.shareIdFuzzy}, '%'}
+			 and shareId like concat('%', #{query.shareIdFuzzy}, '%')
 		</if>
 		<if test="query.fileIdFuzzy !=null and query.fileIdFuzzy!=''">
-			 and fileId like concat('%', #{query.fileIdFuzzy}, '%'}
+			 and fileId like concat('%', #{query.fileIdFuzzy}, '%')
 		</if>
 		<if test="query.userIdFuzzy !=null and query.userIdFuzzy!=''">
-			 and userId like concat('%', #{query.userIdFuzzy}, '%'}
+			 and userId like concat('%', #{query.userIdFuzzy}, '%')
 		</if>
 		<if test="query.expireTimeStart !=null and query.expireTimeStart!=''">
 			<![CDATA[ and expireTime >= str_to_date(#{query.expireTimeStart}, '%Y-%m-%d') ]]>
@@ -82,7 +82,7 @@
 			<![CDATA[ and shareTime < date_sub(str_to_date(#{query.shareTimeEnd}, '%Y-%m-%d'),interval -1 day) ]]>
 		</if>
 		<if test="query.codeFuzzy !=null and query.codeFuzzy!=''">
-			 and code like concat('%', #{query.codeFuzzy}, '%'}
+			 and code like concat('%', #{query.codeFuzzy}, '%')
 		</if>
 	</sql>
 
