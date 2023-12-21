@@ -48,13 +48,13 @@ public class FileShareServiceImpl implements FileShareService {
 	/** 
 	 * 分页查询
 	 */
-	public PaginationResultVO<FileShare> findListByPage(FileShareQuery query){
+	public PaginationResultVO<FileShareDto> findListByPage(FileShareQuery query){
 		int count=Math.toIntExact(findCountByParam(query));
 		int pageSize= query.getPageSize()==null ? PageSize.SIZE15.getSize() : query.getPageSize();
 		SimplePage page=new SimplePage(query.getPageNo(), count, pageSize);
 		query.setSimplePage(page);
 		List<FileShareDto> list=fileShareMapper.selectListByUid(query);
-		PaginationResultVO<FileShare> result=new PaginationResultVO(count,page.getPageSize(),page.getPageNo(),page.getPageTotal(),list);
+		PaginationResultVO<FileShareDto> result=new PaginationResultVO(count,page.getPageSize(),page.getPageNo(),page.getPageTotal(),list);
 		return result;
 	}
 

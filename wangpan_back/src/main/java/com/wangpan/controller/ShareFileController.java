@@ -1,5 +1,6 @@
 package com.wangpan.controller;
 
+import com.wangpan.dto.FileShareDto;
 import com.wangpan.entity.po.FileShare;
 import com.wangpan.entity.query.FileShareQuery;
 import com.wangpan.entity.vo.FileVO;
@@ -27,7 +28,7 @@ public class ShareFileController extends ABaseController{
         FileShareQuery fileShareQuery=new FileShareQuery();
         fileShareQuery.setUserId(getUserInfoFromSession(session).getUid());
         fileShareQuery.setOrderBy("shareTime desc");
-        PaginationResultVO<FileShare> result=fileShareService.findListByPage(fileShareQuery);
+        PaginationResultVO<FileShareDto> result=fileShareService.findListByPage(fileShareQuery);
         return getSuccessResponseVO(result);
     }
 

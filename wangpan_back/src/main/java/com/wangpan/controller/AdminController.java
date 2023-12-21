@@ -38,15 +38,17 @@ public class AdminController extends ABaseController{
     @Autowired
     private UserService userService;
     @Autowired
-    private UserController userController;
+    private SysSettingsDto sysSettingsDto;
 
     @PostMapping("/getSysSettings")
     public ResponseVO getSystemSettings(){
-        return getSuccessResponseVO(redisComponent.getSysSettingDto());
+        //return getSuccessResponseVO(redisComponent.getSysSettingDto());
+        return getSuccessResponseVO(sysSettingsDto);
     }
 
     @PostMapping("/saveSysSettings")
     public ResponseVO saveSysSettings(String registerEmailTitle,String registerEmailContent,String userInitUseSpace){
+        /*
         SysSettingsDto sysSettingsDto=new SysSettingsDto();
         sysSettingsDto.setRegisterEmailContent(registerEmailContent);
         sysSettingsDto.setRegisterEmailTitle(registerEmailTitle);
@@ -57,6 +59,11 @@ public class AdminController extends ABaseController{
             return getFailResponseVO("保存失败");
         }
 
+         */
+        sysSettingsDto.setRegisterEmailContent(registerEmailContent);
+        sysSettingsDto.setRegisterEmailTitle(registerEmailTitle);
+        sysSettingsDto.setUserInitUseSpace(Integer.valueOf(userInitUseSpace));
+        return getSuccessResponseVO(null);
     }
 
     @PostMapping("/loadUserList")

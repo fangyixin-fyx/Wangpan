@@ -335,6 +335,8 @@ public class UserServiceImpl implements UserService {
 		//删除redis内的用户空间数据
 		String uid=((UserDto) session.getAttribute(Constants.SESSION_USER)).getUid();
 		redisUtils.delete(Constants.REDIS_KEY_USERSPACE_USED+uid);
+		//删除redis内的系统邮件默认值
+		redisUtils.delete(Constants.REDIS_KEY_SYS_SETTINGS);
 		//删除保存用户信息的session
 		session.invalidate();
 	}

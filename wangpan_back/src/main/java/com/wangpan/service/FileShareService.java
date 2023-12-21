@@ -1,5 +1,6 @@
 package com.wangpan.service;
 
+import com.wangpan.dto.FileShareDto;
 import com.wangpan.entity.po.FileShare;
 import com.wangpan.entity.query.FileShareQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
@@ -20,7 +21,7 @@ public interface FileShareService {
 	/** 
 	 * 分页查询
 	 */
-	PaginationResultVO<FileShare> findListByPage(FileShareQuery query);
+	PaginationResultVO<FileShareDto> findListByPage(FileShareQuery query);
 
 	/** 
 	 * 新增

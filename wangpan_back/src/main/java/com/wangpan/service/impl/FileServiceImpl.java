@@ -789,6 +789,7 @@ public class FileServiceImpl implements FileService {
 		String[] fidArray=fids.split(",");
 		FileQuery fileQuery=new FileQuery();
 		fileQuery.setFileIdArray(fidArray);
+		fileQuery.setUserId(uid);
 		fileQuery.setDelFlag(FileDelFlagEnum.RECYCLE.getStatus());
 		//获取到文件信息
 		List<FileInfo> fileList=fileMapper.selectList(fileQuery);
