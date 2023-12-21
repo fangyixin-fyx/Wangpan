@@ -184,7 +184,7 @@ public class FileController extends ABaseController {
 	}
 
 	@GetMapping("/download/{code}")
-	@GlobalInterceptor
+	@GlobalInterceptor(checkLogin = false)
 	public void download(HttpServletRequest request, HttpServletResponse response,
 							   @PathVariable("code") String code) throws UnsupportedEncodingException {
 		Map<String,String> map=fileService.download(code);

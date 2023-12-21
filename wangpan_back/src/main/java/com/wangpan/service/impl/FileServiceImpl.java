@@ -692,13 +692,14 @@ public class FileServiceImpl implements FileService {
 		downloadFileDto.setDownloadCode(code);
 		downloadFileDto.setFileName(fileInfo.getFileName());
 		downloadFileDto.setFilePath(fileInfo.getFilePath());
-		//将验证码存入redis中
-		redisComponent.saveDownloadCode(downloadFileDto);
+		//将下载信息存入redis中
+		String key=Constants.REDIS_KEY_DOWNLOAD_CODE+code;
+		redisUtils.setByTime(key,downloadFileDto,Constants.REDIS_KEY_EXPIRES_MINUTE*3L);
 		return code;
 	}
 
 	public Map<String,String> download(String code){
-		DownloadFileDto downloadFileDto=redisComponent.getDownloadMsg(code);
+		DownloadFileDto downloadFileDto=(DownloadFileDto) redisUtils.get(Constants.REDIS_KEY_DOWNLOAD_CODE+code);
 		if(downloadFileDto==null){
 			throw new BusinessException("下载验证码已失效");
 		}
