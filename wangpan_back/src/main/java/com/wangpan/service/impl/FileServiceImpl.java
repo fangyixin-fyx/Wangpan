@@ -111,6 +111,9 @@ public class FileServiceImpl implements FileService {
 	 * 根据 FidAndUserId 查询
 	 */
 	public FileInfo getFileByFidAndUserId(String fid, String userId){
+		if(userId==null){
+			return fileMapper.selectByFid(fid);
+		}
 		return fileMapper.selectByFidAndUserId(fid, userId);
 	}
 

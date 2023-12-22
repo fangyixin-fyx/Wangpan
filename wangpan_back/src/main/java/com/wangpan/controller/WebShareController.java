@@ -1,5 +1,6 @@
 package com.wangpan.controller;
 
+import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.ShareSessionDto;
 import com.wangpan.dto.UserDto;
@@ -142,6 +143,17 @@ public class WebShareController extends ABaseController{
         UserDto userDto=getUserInfoFromSession(session);
         webShareService.save2MyAccount(userDto.getUid(),shareSessionDto.getShareUserId(),shareFileIds,myFolderId);
         return getSuccessResponseVO(UploadStatusEnum.UPLOADED);
+    }
+
+    /**
+     * 预览非视频文件的接口
+     * @return: 文件流直接写入response里，不需要返回
+     */
+    @GetMapping("/getFile/{shareId}/{fileId}")
+    public void getFile(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
+        UserDto userDto=getUserInfoFromSession(session);
+        String filePath=fileService.getFile(fileId,userDto==null?null: userDto.getUid());
+        readFile(response,filePath);
     }
 
 }

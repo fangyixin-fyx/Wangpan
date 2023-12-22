@@ -70,7 +70,6 @@ public class FileController extends ABaseController {
 	 * 通过图片名获取图片，显示缩略图或封面
 	 */
 	@GetMapping("/getImage/{imageName}")
-	@GlobalInterceptor
 	public void getImage(HttpServletResponse response,HttpSession session, @PathVariable("imageName") String imageName){
 		if(StringTool.isEmpty(imageName)){
 			return;
@@ -88,7 +87,6 @@ public class FileController extends ABaseController {
 	 * 读取视频文件接口
 	 */
 	@GetMapping("/ts/getVideoInfo/{fileId}")
-	@GlobalInterceptor
 	public void getVideoInfo(HttpServletResponse response,HttpSession session,@PathVariable("fileId") String fileId){
 		UserDto userDto=getUserInfoFromSession(session);
 		String filePath=fileService.getFile(fileId,userDto.getUid());
