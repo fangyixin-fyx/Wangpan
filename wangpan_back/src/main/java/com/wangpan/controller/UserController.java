@@ -3,7 +3,6 @@ package com.wangpan.controller;
 import com.wangpan.annotations.GlobalInterceptor;
 import com.wangpan.annotations.VerifyParam;
 import com.wangpan.config.BaseConfig;
-import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserSpaceDto;
@@ -18,7 +17,6 @@ import com.wangpan.utils.StringTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,7 +25,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 /**
  * @author fangyixin
@@ -42,8 +39,6 @@ public class UserController extends ABaseController {
     private EmailCodeService emailCodeService;
     @Autowired
     private BaseConfig baseConfig;
-    @Autowired
-    private RedisComponent redisComponent;
     @Resource
     private RedisUtils redisUtils;
 

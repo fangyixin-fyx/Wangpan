@@ -1,7 +1,6 @@
 package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
-import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserForAdminDto;
@@ -38,8 +37,6 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private EmailCodeService emailCodeService;
-	@Autowired
-	private RedisComponent redisComponet;
 	@Autowired
 	private BaseConfig baseConfig;
 	@Autowired

@@ -1,9 +1,7 @@
 package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
-import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
-import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.entity.po.EmailCode;
 import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.EmailCodeQuery;
@@ -42,8 +40,6 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	private JavaMailSender javaMailSender;
 	@Autowired
 	private BaseConfig baseConfig;
-	@Autowired
-	private RedisComponent redisComponent;
 	@Autowired
 	private RedisUtils redisUtils;
 

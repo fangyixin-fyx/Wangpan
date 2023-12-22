@@ -1,14 +1,12 @@
 package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
-import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.DownloadFileDto;
 import com.wangpan.dto.UploadResultDto;
 import com.wangpan.dto.UserDto;
 import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.entity.po.FileInfo;
-import com.wangpan.entity.po.User;
 import com.wangpan.entity.query.FileQuery;
 import com.wangpan.entity.query.SimplePage;
 import com.wangpan.entity.vo.PaginationResultVO;
@@ -42,8 +40,6 @@ import java.util.stream.Collectors;
 public class FileServiceImpl implements FileService {
 	@Resource
 	private FileMapper<FileInfo,FileQuery> fileMapper;
-	@Autowired
-	private RedisComponent redisComponent;
 	@Autowired
 	private UserMapper userMapper;
 	@Autowired

@@ -1,7 +1,6 @@
 package com.wangpan.controller;
 
 import com.wangpan.annotations.GlobalInterceptor;
-import com.wangpan.config.RedisComponent;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserForAdminDto;
 import com.wangpan.entity.po.FileInfo;
@@ -29,8 +28,6 @@ public class AdminController extends ABaseController{
     private FileService fileService;
     @Autowired
     private FileShareService fileShareService;
-    @Autowired
-    private RedisComponent redisComponent;
     @Autowired
     private UserService userService;
     @Autowired

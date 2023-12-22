@@ -1,6 +1,5 @@
 package com.wangpan.task;
 
-import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.entity.po.FileInfo;

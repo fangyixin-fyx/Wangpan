@@ -1,7 +1,6 @@
 package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
-import com.wangpan.config.RedisComponent;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.ShareSessionDto;
 import com.wangpan.dto.UserSpaceDto;
@@ -52,8 +51,6 @@ public class WebShareServiceImpl implements WebShareService {
     private BaseConfig baseConfig;
     @Autowired
     private UserMapper userMapper;
-    @Autowired
-    private RedisComponent redisComponent;
     @Autowired
     private RedisUtils redisUtils;
 
