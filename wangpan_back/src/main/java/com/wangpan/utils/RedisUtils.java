@@ -3,6 +3,7 @@ package com.wangpan.utils;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserSpaceDto;
+import com.wangpan.mapper.FileMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,8 @@ import java.util.concurrent.TimeUnit;
 public class RedisUtils {
     @Resource
     private RedisTemplate redisTemplate;
-
+    @Autowired
+    private FileMapper fileMapper;
     private static final Logger logger = LoggerFactory.getLogger(RedisUtils.class);
 
     /**
@@ -104,5 +106,16 @@ public class RedisUtils {
             return (Long)size;
         }
         return 0L;
+    }
+
+    public UserSpaceDto getUsedSpaceDto(String uid){
+        UserSpaceDto userSpaceDto=(UserSpaceDto)get(Constants.REDIS_KEY_USERSPACE_USED+uid);
+        if(userSpaceDto==null){
+            userSpaceDto=new UserSpaceDto();
+            userSpaceDto.setUseSpace(fileMapper.getUsedSpaceByUid(uid));
+            userSpaceDto.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
+            setByTime(Constants.REDIS_KEY_USERSPACE_USED+uid,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
+        }
+        return userSpaceDto;
     }
 }

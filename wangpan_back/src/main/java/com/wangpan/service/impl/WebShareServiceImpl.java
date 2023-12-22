@@ -23,6 +23,7 @@ import com.wangpan.service.FileService;
 import com.wangpan.service.WebShareService;
 import com.wangpan.utils.CopyUtil;
 import com.wangpan.utils.DateUtil;
+import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringTool;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,8 @@ public class WebShareServiceImpl implements WebShareService {
     private UserMapper userMapper;
     @Autowired
     private RedisComponent redisComponent;
+    @Autowired
+    private RedisUtils redisUtils;
 
     public WebShareInfoDto getShareInfoCommon(String shareId){
         WebShareInfoDto fileShare=fileShareMapper.getWebShareInfo(shareId);
@@ -114,31 +117,33 @@ public class WebShareServiceImpl implements WebShareService {
             throw new BusinessException("自己分享的文件无法保存至自己的网盘");
         }
         String[] saveFids=shareFileIds.split(",");
-
+        String redisSpaceKey=Constants.REDIS_KEY_USERSPACE_USED+uid;
         Date currTime=new Date();
 
         //遍历要转存的文件
         for(String fid:saveFids){
             //开始转存
             FileInfo fileInfo=fileMapper.selectByFid(fid);
-            String newFid=StringTool.getRandomNumber(Constants.LENGTH_10);
-            UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
             //判断空间是否充足
+            //UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+            UserSpaceDto userSpaceDto=redisUtils.getUsedSpaceDto(uid);
             if(fileInfo.getFileSize()!=null&&fileInfo.getFileSize()+userSpaceDto.getUseSpace()>userSpaceDto.getTotalSpace()){
                 throw new BusinessException("空间不足，无法转存");
             }
 
+            String newFid=StringTool.getRandomNumber(Constants.LENGTH_10);
             //转存子文件
             if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
                 saveSubFile(uid,shareUserId,fileInfo.getFid(),newFid);
             }
-
+            //转存当前文件
             if(fileService.checkFileName(myFolderId,uid,fileInfo.getFileName(),fileInfo.getFolderType())>0){
                 //重命名
                 String fileName=fileInfo.getFileName()+"_"+
                         DateUtil.format(currTime,DateTimePatternEnum.YYYY_MM_DD_HH_MM_SS.getPattern());
                 fileInfo.setFileName(fileName);
             }
+
             fileInfo.setFid(newFid);
             fileInfo.setFilePid(Constants.ROOT_PID);
             fileInfo.setUserId(uid);
@@ -150,17 +155,19 @@ public class WebShareServiceImpl implements WebShareService {
             int resInsert=fileMapper.insert(fileInfo);
             if(resInsert<1) throw new BusinessException("文件"+fileInfo.getFileName()+"转存失败");
 
-            //转存子文件
+            //转存非文件夹
             if(fileInfo.getFolderType().equals(FileFolderTypeEnum.FILE.getType())){
                 //更新redis用户使用空间
                 Long useSpace=userSpaceDto.getUseSpace()+fileInfo.getFileSize();
                 userSpaceDto.setUseSpace(useSpace);
-                redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+                //redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+                redisUtils.setByTime(redisSpaceKey,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
             }
 
         }
         //更新用户数据库
-        UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+        //UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+        UserSpaceDto userSpaceDto=redisUtils.getUsedSpaceDto(uid);
         int result=userMapper.updateUserSpace2(uid,userSpaceDto.getUseSpace(),null);
         if(result<1) throw new BusinessException("更新user表使用空间失败");
     }
@@ -170,10 +177,12 @@ public class WebShareServiceImpl implements WebShareService {
         //获取所有子文件
         List<FileInfo> subList=fileMapper.selectFileByUidAndPid(ownerId,folderId);
         Date currTime=new Date();
+        String redisSpaceKey=Constants.REDIS_KEY_USERSPACE_USED+uid;
         for(FileInfo subFile:subList){
             //判断用户空间是否充足
             Long fileSize=subFile.getFileSize();
-            UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+            //UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+            UserSpaceDto userSpaceDto=redisUtils.getUsedSpaceDto(uid);
             if(fileSize!=null&&fileSize+userSpaceDto.getUseSpace()>userSpaceDto.getTotalSpace()){
                 throw new BusinessException("空间不足，无法转存");
             }
@@ -201,11 +210,12 @@ public class WebShareServiceImpl implements WebShareService {
             int resInsert=fileMapper.insert(subFile);
             if(resInsert<1) throw new BusinessException("文件"+subFile.getFileName()+"转存失败");
 
-            //转存子文件
+            //转存文件
             if(subFile.getFolderType().equals(FileFolderTypeEnum.FILE.getType())){
                 //更新redis用户使用空间
                 userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()+subFile.getFileSize());
-                redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+                //redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+                redisUtils.setByTime(redisSpaceKey,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
             }
         }
 

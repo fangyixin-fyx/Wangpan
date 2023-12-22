@@ -1,6 +1,7 @@
 package com.wangpan.task;
 
 import com.wangpan.config.RedisComponent;
+import com.wangpan.constants.Constants;
 import com.wangpan.dto.UserSpaceDto;
 import com.wangpan.entity.po.FileInfo;
 import com.wangpan.entity.po.FileShare;
@@ -9,6 +10,7 @@ import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.FileShareMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.FileService;
+import com.wangpan.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -30,7 +32,7 @@ public class FileCleanTask {
     @Autowired
     private FileService fileService;
     @Autowired
-    private RedisComponent redisComponent;
+    private RedisUtils redisUtils;
 
 
     @Scheduled(fixedDelay = 60*60*1000)
@@ -64,10 +66,14 @@ public class FileCleanTask {
         //更新用户空间
         for(String uid:uidSet){
             Long currSize=fileMapper.getUsedSpaceByUid(uid);
-            UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
-            userMapper.updateUserSpace2(uid,currSize,userSpaceDto.getTotalSpace());
-            userSpaceDto.setUseSpace(currSize);
-            redisComponent.saveUserSpaceUsed(uid,userSpaceDto);
+            userMapper.updateUserSpace2(uid,currSize,null);
+            //如果是当前登录用户，则需要更新redis
+            //UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(uid);
+            UserSpaceDto userSpaceDto=redisUtils.getUsedSpaceDto(uid);
+            if(userSpaceDto!=null){
+                userSpaceDto.setUseSpace(currSize);
+                redisUtils.setByTime(Constants.REDIS_KEY_USERSPACE_USED+uid,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
+            }
         }
     }
     private void cleanShareFile(){
