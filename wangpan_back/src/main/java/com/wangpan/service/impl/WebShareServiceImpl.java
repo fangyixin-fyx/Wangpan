@@ -15,6 +15,7 @@ import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.enums.DateTimePatternEnum;
 import com.wangpan.enums.FileFolderTypeEnum;
 import com.wangpan.enums.PageSize;
+import com.wangpan.enums.ResponseCodeEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.FileMapper;
 import com.wangpan.mapper.FileShareMapper;
@@ -59,11 +60,11 @@ public class WebShareServiceImpl implements WebShareService {
     public WebShareInfoDto getShareInfoCommon(String shareId){
         WebShareInfoDto fileShare=fileShareMapper.getWebShareInfo(shareId);
         if(fileShare==null){
-            throw new BusinessException("分享文件已不存在");
+            return null;
         }
         Date curr=new Date();
         if(fileShare.getExpireTime()!=null && curr.after(fileShare.getExpireTime())){
-            throw new BusinessException("分享文件已经失效");
+            fileShare.setCode(ResponseCodeEnum.CODE_500.getCode());
         }
         return fileShare;
     }

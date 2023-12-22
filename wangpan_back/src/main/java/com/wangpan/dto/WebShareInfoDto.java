@@ -23,4 +23,5 @@ public class WebShareInfoDto {
     private String fileId;
     private String avatar;
     private String userId;
+    private Integer code;
 }

@@ -45,6 +45,9 @@ public class WebShareController extends ABaseController{
     @PostMapping("/getShareInfo")
     public ResponseVO getShareInfo(String shareId){
         WebShareInfoDto webShareInfoDto=webShareService.getShareInfoCommon(shareId);
+        if(webShareInfoDto==null || webShareInfoDto.getCode()==ResponseCodeEnum.CODE_500.getCode()){
+            return getFailResponseVOWithMsg("文件分享已取消或已失效");
+        }
         return getSuccessResponseVO(webShareInfoDto);
     }
 
