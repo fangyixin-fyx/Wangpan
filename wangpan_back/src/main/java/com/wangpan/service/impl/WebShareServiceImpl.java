@@ -146,7 +146,8 @@ public class WebShareServiceImpl implements WebShareService {
             }
 
             fileInfo.setFid(newFid);
-            fileInfo.setFilePid(Constants.ROOT_PID);
+            //fileInfo.setFilePid(Constants.ROOT_PID);
+            fileInfo.setFilePid(myFolderId);
             fileInfo.setUserId(uid);
             fileInfo.setLastUpdateTime(currTime);
             fileInfo.setCreateTime(currTime);
