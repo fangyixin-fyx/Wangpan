@@ -31,7 +31,7 @@ public class Constants {
     //登录
     public static final String SESSION_USER="session_user";
 
-    public static final String FILE_PATH="/file/";
+    public static final String FILE_PATH="file/";
     //头像路径
     public static final String AVATAR_PATH=FILE_PATH+"avatar/";
     //默认头像

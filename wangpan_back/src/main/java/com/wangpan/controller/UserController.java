@@ -144,7 +144,6 @@ public class UserController extends ABaseController {
     }
 
     @GetMapping("/getAvatar/{userId}")
-    @GlobalInterceptor
     public void getAvatar(HttpServletResponse response, @PathVariable("userId") String userId){
         /*
         String path=baseConfig.getProjectFolder()+Constants.AVATAR_PATH;
