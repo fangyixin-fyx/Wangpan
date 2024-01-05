@@ -225,6 +225,9 @@ public class UserServiceImpl implements UserService {
 
 	public UserDto login(String email, String password){
 		User user=userMapper.selectByEmail(email);
+		if(user==null){
+			throw new BusinessException("用户不存在！");
+		}
 		if(!password.equals(user.getPassword())){
 			throw new BusinessException("账号或密码错误！");
 		}

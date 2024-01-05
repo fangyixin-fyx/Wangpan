@@ -108,7 +108,7 @@ public class UserController extends ABaseController {
     {
         try {
             if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY))){
-                throw new BusinessException("验证码错误");
+                throw new BusinessException("验证码不正确");
             }
             UserDto sessionWebUserDto =userService.login(email,password);
             session.setAttribute(Constants.SESSION_USER, sessionWebUserDto); //存入session
@@ -127,13 +127,13 @@ public class UserController extends ABaseController {
                             @VerifyParam(required = true) String checkCode,
                             @VerifyParam(required = true) String emailCode   )
     {
-        try {
+        try{
             if(!checkCode.equals(session.getAttribute(Constants.CHECK_CODE_KEY))){
-                throw new BusinessException("验证码错误");
+                throw new BusinessException("验证码不正确");
             }
             userService.resetPwd(email,password,emailCode);
             return getSuccessResponseVO(null);   //返给前端
-        }finally {
+        } finally {
             session.removeAttribute(Constants.CHECK_CODE_KEY);
         }
     }
