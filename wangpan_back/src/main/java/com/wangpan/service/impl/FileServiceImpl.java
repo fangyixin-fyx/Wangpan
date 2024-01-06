@@ -245,7 +245,7 @@ public class FileServiceImpl implements FileService {
 			fileInfo.setFileSize(totalSize);
 			//更新file表
 			fileMapper.insert(fileInfo);
-			//更新user表
+			//更新用户空间数据：user表+redis
 			updateUserSpace(userDto,totalSize);
 
 			resultDto.setStatus(UploadStatusEnum.UPLOADED.getCode());
@@ -324,13 +324,15 @@ public class FileServiceImpl implements FileService {
 		if(result==0){
 			throw new BusinessException(ResponseCodeEnum.CODE_FILE);
 		}
-		//UserSpaceDto userSpaceDto=redisComponent.getUsedSpaceDto(userDto.getUid());
+		/*
 		String key=Constants.REDIS_KEY_USERSPACE_USED+userDto.getUid();
 		UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(key);
 		//更新redis数据
 		userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()+useSpace);
-		//redisComponent.saveUserSpaceUsed(userDto.getUid(),userSpaceDto);
 		redisUtils.setByTime(key,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
+
+		 */
+		redisUtils.setUserSpace(userDto.getUid(),useSpace);
 	}
 
 	/**

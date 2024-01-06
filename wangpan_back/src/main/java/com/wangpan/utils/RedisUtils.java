@@ -3,6 +3,7 @@ package com.wangpan.utils;
 import com.wangpan.constants.Constants;
 import com.wangpan.dto.SysSettingsDto;
 import com.wangpan.dto.UserSpaceDto;
+import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.FileMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ public class RedisUtils {
     @Autowired
     private FileMapper fileMapper;
     private static final Logger logger = LoggerFactory.getLogger(RedisUtils.class);
+    private static final String LOCK_KEY_SPACE="space_";
 
     /**
      * 删除缓存
@@ -117,5 +119,40 @@ public class RedisUtils {
             setByTime(Constants.REDIS_KEY_USERSPACE_USED+uid,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
         }
         return userSpaceDto;
+    }
+
+    public void setUserSpace(String userId,Long addSize){
+        String key=Constants.REDIS_KEY_USERSPACE_USED+userId;
+        String lock_key=LOCK_KEY_SPACE+key;
+        boolean done=false;
+        int count=0;
+        while(!done){
+            // 获取分布式锁，设置锁的过期时间为10s
+            // SETNX命令，如果键不存在则设置值，设置成功返回 true，否则返回 false
+            try {
+                Boolean isLocked=redisTemplate.opsForValue().setIfAbsent(lock_key,"locked",10,TimeUnit.SECONDS);
+                //获取锁成功
+                if(isLocked!=null&&isLocked){
+                    try{
+                        UserSpaceDto userSpaceDto=getUsedSpaceDto(userId);
+                        userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()+addSize);
+                        redisTemplate.opsForValue().set(key,userSpaceDto);
+                        done=true;
+                        logger.info("修改用户空间成功 "+userSpaceDto.getUseSpace());
+                    }finally {
+                        delete(lock_key);
+                    }
+                }else{
+                    //获取锁失败，等待3s后重试
+                    Thread.sleep(3000);
+                    if (++count>3) throw new BusinessException("获取锁失败");
+                }
+
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (Exception e){
+                throw new BusinessException("并发更改用户"+userId+"的redis空间失败",e);
+            }
+        }
     }
 }
