@@ -475,7 +475,7 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Transactional(rollbackFor = Exception.class)
-	public void changeFilesPid(String fileIDs, String pid){
+	public void changeFilesPid(String fileIDs, String pid, String uid){
 		if(StringTool.isEmpty(fileIDs) || StringTool.isEmpty(pid) ||
 				(!pid.equals(Constants.ROOT_PID) &&fileMapper.selectByFid(pid)==null)){
 			throw new BusinessException("移动文件失败，目标移动文件或目标目录不存在！");
@@ -485,7 +485,7 @@ public class FileServiceImpl implements FileService {
 		FileInfo fileInfo=new FileInfo();
 		Date currDate=new Date();
 		//获取目标目录下的所有文件的名字
-		List<String> existFileName=fileMapper.getFileNameByPid(pid);
+		List<String> existFileName=fileMapper.getFileNameByPid(pid,uid);
 		//改为map存储，方便查找，避免嵌套循环
 		Map<String,Integer> fileNameMap=existFileName.stream().collect(Collectors.toMap(
 				//使用文件名作为键

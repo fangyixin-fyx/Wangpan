@@ -167,9 +167,10 @@ public class FileController extends ABaseController {
 	@PostMapping("/changeFileFolder")
 	@GlobalInterceptor
 	public ResponseVO changeFilesToOtherFolder(@RequestParam("filePid") String pid,
-											   @RequestParam("fileIds") String fileIDs){
-
-		fileService.changeFilesPid(fileIDs,pid);
+											   @RequestParam("fileIds") String fileIDs,
+											   HttpSession session){
+		String uid=getUserInfoFromSession(session).getUid();
+		fileService.changeFilesPid(fileIDs,pid,uid);
 		return getSuccessResponseVO(null);
 	}
 

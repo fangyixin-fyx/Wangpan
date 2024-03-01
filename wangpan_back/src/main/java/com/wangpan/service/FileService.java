@@ -105,7 +105,7 @@ public interface FileService {
 	 * @param fileIDs
 	 * @param pid
 	 */
-	void changeFilesPid(String fileIDs, String pid);
+	void changeFilesPid(String fileIDs, String pid, String uid);
 
 	/**
 	 * 下载校验

@@ -632,7 +632,7 @@
 	</update>
 
 	<select id="getFileNameByPid" resultType="String">
-		select fileName from file where filePid=#{pid}
+		select fileName from file where filePid=#{pid} and userId=#{uid}
 	</select>
 
 	<update id="delByFid">

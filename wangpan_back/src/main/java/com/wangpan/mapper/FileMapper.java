@@ -42,7 +42,7 @@ public interface FileMapper<T, P> extends BaseMapper{
 
     void updateFileByFid(@Param("bean") T t, @Param("fid") String fid);
 
-	List<String> getFileNameByPid(@Param("pid") String pid);
+	List<String> getFileNameByPid(@Param("pid") String pid,@Param("uid") String uid);
 
 	/**
 	 * 移入回收站，并没有真正删除
