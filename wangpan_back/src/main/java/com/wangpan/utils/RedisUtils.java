@@ -138,20 +138,22 @@ public class RedisUtils {
                         userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()+addSize);
                         redisTemplate.opsForValue().set(key,userSpaceDto);
                         done=true;
-                        logger.info("修改用户空间成功 "+userSpaceDto.getUseSpace());
                     }finally {
                         delete(lock_key);
                     }
                 }else{
                     //获取锁失败，等待3s后重试
                     Thread.sleep(3000);
-                    if (++count>3) throw new BusinessException("获取锁失败");
+                    if (++count>3){
+                        logger.info(userId+"用户获取redis分布式锁失败，使用空间数据更新失败");
+                        throw new BusinessException("使用空间数据并发更新失败，请重新上传文件");
+                    }
                 }
 
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (Exception e){
-                throw new BusinessException("并发更改用户"+userId+"的redis空间失败",e);
+                throw new BusinessException(e.getMessage(),e);
             }
         }
     }

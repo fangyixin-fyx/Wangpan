@@ -2,15 +2,9 @@ package com.wangpan.service.impl;
 
 import com.wangpan.config.BaseConfig;
 import com.wangpan.constants.Constants;
-import com.wangpan.entity.po.EmailCode;
 import com.wangpan.entity.po.User;
-import com.wangpan.entity.query.EmailCodeQuery;
-import com.wangpan.entity.query.SimplePage;
 import com.wangpan.entity.query.UserQuery;
-import com.wangpan.entity.vo.PaginationResultVO;
-import com.wangpan.enums.PageSize;
 import com.wangpan.exception.BusinessException;
-import com.wangpan.mapper.EmailCodeMapper;
 import com.wangpan.mapper.UserMapper;
 import com.wangpan.service.EmailCodeService;
 import com.wangpan.utils.RedisUtils;
@@ -26,13 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.mail.internet.MimeMessage;
 import java.util.Date;
-import java.util.List;
 
 @Service("emailCodeService")
 public class EmailCodeServiceImpl implements EmailCodeService {
 	private static final Logger logger = LoggerFactory.getLogger(EmailCodeServiceImpl.class);
-	@Autowired
-	private EmailCodeMapper<EmailCode,EmailCodeQuery> emailCodeMapper;
 	@Autowired
 	private UserMapper<User, UserQuery> userMapper;
 	//邮箱配置
@@ -43,87 +34,6 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	@Autowired
 	private RedisUtils redisUtils;
 
-	/** 
-	 * 根据条件查询列表
-	 */
-	@Override
-	public List<EmailCode> findListByParam(EmailCodeQuery query){
-		return emailCodeMapper.selectList(query);
-	}
-
-	/** 
-	 * 根据条件查询数量
-	 */
-	@Override
-	public Integer  findCountByParam(EmailCodeQuery query){
-		return emailCodeMapper.selectCount(query);
-	}
-
-	/** 
-	 * 分页查询
-	 */
-	@Override
-	public PaginationResultVO<EmailCode> findListByPage(EmailCodeQuery query){
-		int count=Math.toIntExact(this.findCountByParam(query));
-		int pageSize= query.getPageSize()==null ? PageSize.SIZE15.getSize() : query.getPageSize();
-		SimplePage page=new SimplePage(query.getPageNo(), count, pageSize);
-		query.setSimplePage(page);
-		List<EmailCode> list=this.findListByParam(query);
-		PaginationResultVO<EmailCode> result=new PaginationResultVO(count,page.getPageSize(),page.getPageNo(),page.getPageTotal(),list);
-		return result;
-	}
-
-	/** 
-	 * 新增
-	 */
-	@Override
-	public Integer add(EmailCode bean){
-		return emailCodeMapper.insert(bean);
-	}
-
-	/** 
-	 * 批量新增
-	 */
-	@Override
-	public Integer addBatch(List<EmailCode> beanList){
-		if(beanList==null || beanList.isEmpty()) { return 0; }
-		return emailCodeMapper.insertBatch(beanList);
-	}
-
-	/** 
-	 * 批量修改
-	 */
-	@Override
-	public Integer addOrUpdateBatch(List<EmailCode> beanList){
-		if(beanList==null || beanList.isEmpty()) { return 0; }
-		return emailCodeMapper.insertOrUpdateBatch(beanList);
-	}
-
-	/** 
-	 * 根据 EmailAndCode 查询
-	 */
-	@Override
-	public EmailCode getEmailCodeByEmailAndCode(String email, String code){
-		return emailCodeMapper.selectByEmailAndCode(email, code);
-	}
-
-
-	/** 
-	 * 根据 EmailAndCode 更新
-	 */
-	@Override
-	public Integer updateEmailCodeByEmailAndCode( EmailCode bean, String email, String code){
-		return emailCodeMapper.updateByEmailAndCode(bean,email, code);
-	}
-
-
-	/** 
-	 * 根据 EmailAndCode 删除
-	 */
-	@Override
-	public Integer deleteEmailCodeByEmailAndCode(String email, String code){
-		return emailCodeMapper.deleteByEmailAndCode(email, code);
-	}
 
 	/**
 	 * 发送验证码

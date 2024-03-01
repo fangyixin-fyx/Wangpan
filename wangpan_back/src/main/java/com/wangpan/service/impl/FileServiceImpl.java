@@ -319,20 +319,21 @@ public class FileServiceImpl implements FileService {
 
 
 	private void updateUserSpace(UserDto userDto,Long useSpace){
+
 		//更新数据库数据
 		int result=userMapper.updateUserSpace(userDto.getUid(),useSpace,null);
 		if(result==0){
 			throw new BusinessException(ResponseCodeEnum.CODE_FILE);
 		}
+		//更新redis数据
+		redisUtils.setUserSpace(userDto.getUid(),useSpace);
 		/*
 		String key=Constants.REDIS_KEY_USERSPACE_USED+userDto.getUid();
 		UserSpaceDto userSpaceDto=(UserSpaceDto) redisUtils.get(key);
-		//更新redis数据
+
 		userSpaceDto.setUseSpace(userSpaceDto.getUseSpace()+useSpace);
 		redisUtils.setByTime(key,userSpaceDto,Constants.REDIS_KEY_EXPIRES_DAY);
-
 		 */
-		redisUtils.setUserSpace(userDto.getUid(),useSpace);
 	}
 
 	/**

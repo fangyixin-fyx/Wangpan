@@ -36,8 +36,7 @@ public class ExceptionHandlerBase extends ABaseController {
             response.setCode(ResponseCodeEnum.CODE_600.getCode());
             response.setInfo(ResponseCodeEnum.CODE_600.getMsg());
             response.setStatus(STATUE_ERROR);
-        }
-        else if(e instanceof BindException){
+        }else if(e instanceof BindException){
             //主键冲突错误
             response.setCode(ResponseCodeEnum.CODE_601.getCode());
             response.setInfo(ResponseCodeEnum.CODE_601.getMsg());
