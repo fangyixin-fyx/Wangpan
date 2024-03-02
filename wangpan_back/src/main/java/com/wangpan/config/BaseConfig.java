@@ -20,4 +20,13 @@ public class BaseConfig {
     @Value("${project.folder}")
     private String projectFolder;
 
+    @Value("${spring.redis.password}")
+    private String redis_psw;
+
+    @Value("${spring.redis.port}")
+    private String redis_port;
+
+    @Value("${spring.redis.host}")
+    private String redis_host;
+
 }

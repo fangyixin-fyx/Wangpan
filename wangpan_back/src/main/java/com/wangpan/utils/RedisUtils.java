@@ -8,6 +8,7 @@ import com.wangpan.mapper.FileMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,7 @@ public class RedisUtils {
     private FileMapper fileMapper;
     private static final Logger logger = LoggerFactory.getLogger(RedisUtils.class);
     private static final String LOCK_KEY_SPACE="space_";
+
 
     /**
      * 删除缓存

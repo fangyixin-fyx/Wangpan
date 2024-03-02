@@ -141,6 +141,13 @@
       <scope>test</scope>
     </dependency>
 
+    <!--redisson分布式锁-->
+    <dependency>
+      <groupId>org.redisson</groupId>
+      <artifactId>redisson</artifactId>
+      <version>3.17.1</version>
+    </dependency>
+
   </dependencies>
 
   <build>

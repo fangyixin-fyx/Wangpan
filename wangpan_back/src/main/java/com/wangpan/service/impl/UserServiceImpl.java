@@ -10,6 +10,7 @@ import com.wangpan.entity.query.SimplePage;
 import com.wangpan.entity.query.UserQuery;
 import com.wangpan.entity.vo.PaginationResultVO;
 import com.wangpan.enums.PageSize;
+import com.wangpan.enums.ResponseCodeEnum;
 import com.wangpan.enums.UserStateEnum;
 import com.wangpan.exception.BusinessException;
 import com.wangpan.mapper.FileMapper;
@@ -19,6 +20,10 @@ import com.wangpan.service.UserService;
 import com.wangpan.utils.RedisUtils;
 import com.wangpan.utils.StringTool;
 import org.apache.commons.lang3.ArrayUtils;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.redisson.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +34,7 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Service("userService")
 public class UserServiceImpl implements UserService {
@@ -197,30 +203,45 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public void register(String username,String password,String email,String emailCode){
-		User userByEmail=userMapper.selectByEmail(email);
-		if(userByEmail!=null) throw new BusinessException("邮箱已被注册");
-		User userByName=userMapper.selectByUsername(username);
-		if(userByName!=null) throw new BusinessException("用户名已被使用");
-		//校验邮箱验证码
-		emailCodeService.checkCode(email,emailCode);
-		//有可能会重复，需要改进
-		String userID= StringTool.getRandomNumber(Constants.LENGTH_10);
+		//获取分布式锁
+		Config config=new Config();
+		config.useSingleServer()
+				.setAddress("redis://"+baseConfig.getRedis_host()+":"+baseConfig.getRedis_port())
+				.setPassword(baseConfig.getRedis_psw());
+		RedissonClient redisson= Redisson.create(config);
+		RLock lock=redisson.getLock(Constants.REDISSON_LOCK_KEY+email);
+		try {
+			//获取分布式锁
+			lock.lock(Constants.LOCK_EXPIRE_TIME,TimeUnit.SECONDS);
 
-		//user信息
-		User newUser=new User();
-		newUser.setUid(userID);
-		newUser.setUsername(username);
-		newUser.setPassword(StringTool.encodeByMD5(password)); //对密码加密
-		newUser.setEmail(email);
-		newUser.setRegistrationTime(new Date());
-		newUser.setState(UserStateEnum.ABLE.getState());
-		newUser.setUseSpace(0L);
-		//系统配置初始内存参数
-		//可改进，初始化参数不必放在redis中，可以放在Constant类
-		//SysSettingsDto sysSettingsDto=redisComponet.getSysSettingDto();
-		newUser.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
-		userMapper.insert(newUser);
+			//注册逻辑
+			//邮箱是否注册已在获取邮箱验证码时验证
+			//User userByEmail=userMapper.selectByEmail(email);
+			//if(userByEmail!=null) throw new BusinessException("邮箱已被注册");
+			User userByName=userMapper.selectByUsername(username);
+			if(userByName!=null) throw new BusinessException("用户名已被使用");
 
+			//校验邮箱验证码
+			emailCodeService.checkCode(email,emailCode);
+			//有可能会重复，需要改进
+			String userID= StringTool.getRandomNumber(Constants.LENGTH_10);
+
+			//user信息
+			User newUser=new User();
+			newUser.setUid(userID);
+			newUser.setUsername(username);
+			newUser.setPassword(StringTool.encodeByMD5(password)); //对密码加密
+			newUser.setEmail(email);
+			newUser.setRegistrationTime(new Date());
+			newUser.setState(UserStateEnum.ABLE.getState());
+			newUser.setUseSpace(0L);
+			//系统配置初始内存参数
+			newUser.setTotalSpace(Constants.userInitUseSpace*Constants.MB);
+			userMapper.insert(newUser);
+		} finally {
+			lock.unlock();
+			redisson.shutdown();
+		}
 	}
 
 	public UserDto login(String email, String password){

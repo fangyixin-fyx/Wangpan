@@ -45,7 +45,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 	public void sendEmailCode(String email, Integer type){
 		if(type==0){
 			User user=userMapper.selectByEmail(email);
-			if(user!=null) throw new BusinessException("邮箱已存在！");
+			if(user!=null) throw new BusinessException("邮箱已被注册，请更换注册邮箱！");
 		}
 		//获得随机数
 		String code = StringTool.getRandomNumber(Constants.LENGTH_5);
@@ -100,7 +100,7 @@ public class EmailCodeServiceImpl implements EmailCodeService {
 		String redisKey=Constants.EMAIL_CODE+email;
 		String correctCode= (String) redisUtils.get(redisKey);
 		if(correctCode==null){
-			throw new BusinessException("邮箱验证码已失效，请重新发送");
+			throw new BusinessException("邮箱验证码已失效或不存在，请重新获取");
 		}
 		if(!correctCode.equals(code)){
 			throw new BusinessException("邮箱验证码错误");
