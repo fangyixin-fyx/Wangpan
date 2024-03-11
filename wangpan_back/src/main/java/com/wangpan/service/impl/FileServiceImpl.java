@@ -579,10 +579,10 @@ public class FileServiceImpl implements FileService {
 		if(subFiles==null) return;
 		Date currTime=new Date();
 		for(FileInfo subFile:subFiles){
-			fileMapper.delByFid(subFile.getFid(),FileDelFlagEnum.DEL.getStatus(), currTime);
 			if(subFile.getFolderType().equals(FileFolderTypeEnum.FOLDER.getType())){
 				delSubFiles(uid,subFile.getFid());
 			}
+			fileMapper.delByFid(subFile.getFid(),FileDelFlagEnum.DEL.getStatus(), currTime);
 		}
 	}
 

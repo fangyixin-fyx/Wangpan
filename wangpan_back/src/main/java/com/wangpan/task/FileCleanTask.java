@@ -13,6 +13,7 @@ import com.wangpan.utils.RedisUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
@@ -41,7 +42,8 @@ public class FileCleanTask {
         //删除过期分享文件
         cleanShareFile();
     }
-    private void cleanFile(){
+    @Transactional
+    public void cleanFile(){
         Date currTime=new Date();
         List<FileInfo> list=fileMapper.selectExpiredFile(currTime);
         Set<String> uidSet=new HashSet<>();
@@ -75,7 +77,8 @@ public class FileCleanTask {
             }
         }
     }
-    private void cleanShareFile(){
+    @Transactional
+    public void cleanShareFile(){
         Date currTime=new Date();
         List<FileShare> list=fileShareMapper.selectExpiredFile(currTime);
         for(FileShare s:list){
