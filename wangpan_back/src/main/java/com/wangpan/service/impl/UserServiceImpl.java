@@ -203,7 +203,7 @@ public class UserServiceImpl implements UserService {
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public void register(String username,String password,String email,String emailCode){
-		//获取分布式锁
+		//获取锁
 		Config config=new Config();
 		config.useSingleServer()
 				.setAddress("redis://"+baseConfig.getRedis_host()+":"+baseConfig.getRedis_port())
@@ -211,7 +211,7 @@ public class UserServiceImpl implements UserService {
 		RedissonClient redisson= Redisson.create(config);
 		RLock lock=redisson.getLock(Constants.REDISSON_LOCK_KEY+email);
 		try {
-			//获取分布式锁
+			//获取锁
 			lock.lock(Constants.LOCK_EXPIRE_TIME,TimeUnit.SECONDS);
 
 			//注册逻辑

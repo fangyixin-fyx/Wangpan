@@ -62,9 +62,9 @@ public class Constants {
     public static final String EMAIL_CONTEXT="你好，你的邮箱验证码是：%s, 5分钟内有效。";
     public static final String EMAIL_CODE="wangpan:emailCode:";
 
-    //分布式锁
+    //注册redis锁
     public static final String REDISSON_LOCK_KEY = "registration_lock_";
-    public static final Integer LOCK_EXPIRE_TIME = 15; // 锁的过期时间，单位秒
+    public static final Integer LOCK_EXPIRE_TIME = 5; // 锁的过期时间，单位秒
 
 
 }
